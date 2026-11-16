@@ -1,0 +1,67 @@
+#candidate-detail .detail-box {
+  width: min(92vw, 680px);
+  max-width: 680px;
+  max-height: 85dvh;
+  background: var(--color-bg, #111111);
+  color: var(--color-text, #ffffff);
+  border: 1px solid #414141;
+  border-top: 4px solid var(--civic-panel-accent, #991b1b);
+  border-radius: 13px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.detail-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.detail-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #bdbdbd;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.detail-header .avatar { flex-shrink: 0; }
+.detail-header img { object-fit: cover; object-position: center 20%; }
+#detail-name { font-size: 1.65rem; font-weight: 700; line-height: 1.2; }
+#detail-party { margin-top: 8px; }
+
+.detail-notice {
+  margin-top: 24px;
+  padding: 12px;
+  border-left: 3px solid var(--civic-panel-accent, #991b1b);
+  background: #202020;
+  font-size: 0.875rem;
+}
+
+.detail-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 24px 0;
+}
+
+.detail-facts dt, .detail-verified { color: #bdbdbd; font-size: 0.875rem; }
+.detail-facts dd { margin: 4px 0 0; font-weight: 600; }
+.detail-section { padding-top: 20px; margin-top: 20px; border-top: 1px solid #414141; }
+.detail-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 10px; }
+.detail-section p, .detail-section li { line-height: 1.65; }
+.detail-section ul { padding-left: 20px; list-style: disc; }
+.detail-section a { text-decoration: underline; text-underline-offset: 3px; }
+.detail-verified { margin-top: 16px; }
+
+@media (max-width: 480px) {
+  .detail-header { flex-direction: column; align-items: flex-start; }
+  .detail-facts { grid-template-columns: 1fr; }
+}

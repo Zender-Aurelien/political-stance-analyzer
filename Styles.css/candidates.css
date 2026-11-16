@@ -1,0 +1,110 @@
+/* Keep cards in one ow; the container scrolls instead of the pages. */
+.candidate-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 72px) / 4);
+  gap: 24px;
+  margin-top: 32px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 12px;
+}
+
+.candidate-grid > .candidate-card {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+@media (max-width: 900px) {
+  .candidate-grid {
+    grid-auto-columns: calc((100% - 24px) / 2);
+  }
+}
+
+@media (max-width: 600px) {
+  .candidate-grid {
+    grid-auto-columns: 90%;
+  }
+}
+
+/* Party color is always next to a writteen party label. */
+.candidate-card {
+  --party-color: #8b8b8b;
+  overflow: hidden;
+}
+
+.party-democrat {
+  --party-color: #3b82f6;
+}
+.party-republican {
+  --party-color: #ef4444;
+}
+.party-independent {
+  --party-color: #8b8b8b;
+}
+
+.party-stripe {
+  height: 5px;
+  background-color: var(--party-color);
+}
+
+.candidate-avatar {
+  align-self: center;
+}
+
+.candidate-avatar img {
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.candidate-name {
+  justify-content: center;
+  text-align: center;
+}
+
+.candidate-party {
+  text-align: center;
+  font-weight: 400;
+}
+
+.candidate-facts {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+  text-align: left;
+}
+
+.candidate-facts dt {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.candidate-facts dd {
+  margin: 0;
+}
+
+.candidate-summary {
+  text-align: left;
+}
+
+.candidate-summary p,
+.candidate-source {
+  font-weight: 400;
+  font-size: 0.875rem;
+}
+
+.candidate-source {
+  text-decoration: underline;
+}
+
+.candidate-card .card-actions {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.candidate-controls {
+  gap: 12px;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}

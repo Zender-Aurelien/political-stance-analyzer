@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About | Civic Lens</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="Styles.css/reset.css" />
+    <link rel="stylesheet" href="Styles.css/variables.css" />
+    <link rel="stylesheet" href="Styles.css/base.css" />
+    <link rel="stylesheet" href="Styles.css/nav.css" />
+    <link rel="stylesheet" href="Styles.css/about.css" />
+    <link rel="stylesheet" href="Styles.css/themes.css" />
+    <script type="module" src="JS/about.js"></script>
+  </head>
+  <body>
+    <header>
+      <nav id="main-nav" aria-label="Main navigation">
+        <a class="brand" href="index.html">Civic Lens</a>
+        <a class="nav-link" href="about.html" aria-current="page">About Us</a>
+
+        <details
+          class="dropdown dropdown-end"
+          id="nav-dropdown"
+          data-theme="dark"
+        >
+          <summary
+            class="btn btn-ghost btn-circle"
+            aria-label="Navigation menu"
+            aria-controls="nav-dropdown-links"
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h7"
+              />
+            </svg>
+          </summary>
+          <ul
+            id="nav-dropdown-links"
+            class="dropdown-content menu rounded-box civic-menu"
+          >
+            <li class="menu-title">Explore Civic Lens</li>
+            <li><a href="index.html">Home</a></li>
+            <li>
+              <a href="index.html#candidate-search-form">Search candidates</a>
+            </li>
+            <li><a href="about.html" aria-current="page">About us</a></li>
+          </ul>
+        </details>
+      </nav>
+
+      <div class="accent-strip" aria-hidden="true"></div>
+    </header>
+    <main class="about-page" aria-label="About Civic Lens">
+      <p class="about-description">
+        Civic Lens helps New Yorkers learn about political candidates, explore
+        their experience, and find sources to better understand their choices.
+        This version uses sample profiles stored in a local data file, with
+        links to official government and election websites for further research.
+        The profiles are previews, not a verified election lineup. Live
+        candidate data and ZIP-based district lookup are still being developed.
+      </p>
+    </main>
+    <footer class="about-footer"><p>&copy; Civic Lens</p></footer>
+  </body>
+</html>

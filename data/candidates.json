@@ -1,0 +1,76 @@
+[
+  {
+    "id": "zohran-mamdani",
+    "name": "Zohran Mamdani",
+    "photo": "assets/images/zohran-mamdani.jpg",
+    "party": "Democratic",
+    "office": "Mayor",
+    "district": "New York City",
+    "summary": "A verified summary of public service, experience, and\n                  legislative work will appear here.",
+    "sources": [
+      "https://www.nyc.gov/mayors-office"
+    ],
+    "isPreview": true
+  },
+  {
+    "id": "alexandria-ocasio-cortez",
+    "name": "Alexandria Ocasio-Cortez",
+    "photo": "assets/images/alexandria-ocasio-cortez.jpg",
+    "party": "Democratic",
+    "office": "U.S. House",
+    "district": "New York \u00b7 District 14",
+    "summary": "A verified summary of public service, experience, and\n                  legislative work will appear here.",
+    "sources": [
+      "https://clerk.house.gov/members/O000172"
+    ],
+    "isPreview": true
+  },
+  {
+    "id": "mike-lawler",
+    "name": "Mike Lawler",
+    "photo": "assets/images/mike-lawler.jpg",
+    "party": "Republican",
+    "office": "U.S. House",
+    "district": "New York \u00b7 District 17",
+    "summary": "A verified summary of public service, experience, and\n                  legislative work will appear here.",
+    "sources": [
+      "https://www.house.gov/representatives"
+    ],
+    "isPreview": true
+  },
+  {
+    "id": "kathy-hochul",
+    "name": "Kathy Hochul",
+    "photo": "assets/images/kathy-hochul.jpg",
+    "party": "Democratic",
+    "office": "Governor",
+    "district": "New York \u00b7 Statewide",
+    "summary": "A verified summary of public service, experience, and\n                  legislative work will appear here.",
+    "sources": [
+      "https://publicreporting.elections.ny.gov/ElectedOfficials/ElectedOfficials"
+    ],
+    "isPreview": true
+  },
+  {
+    "id": "kirsten-gillibrand",
+    "name": "Kirsten Gillibrand",
+    "photo": "assets/images/kirsten-gillibrand.jpg",
+    "party": "Portrait preview \u00b7 party data pending",
+    "office": "To be verified",
+    "district": "To be verified",
+    "summary": "A verified summary of public service, experience, and legislative work will appear here.",
+    "sources": [],
+    "isPreview": true
+  },
+  {
+    "id": "chuck-schumer",
+    "name": "Chuck Schumer",
+    "photo": "assets/images/chuck-schumer.jpg",
+    "party": "Portrait preview \u00b7 party data pending",
+    "office": "To be verified",
+    "district": "To be verified",
+    "summary": "A verified summary of public service, experience, and legislative work will appear here.",
+    "sources": [],
+    "isPreview": true
+  }
+]

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script type="module" src="JS/main.js"></script>
+    <link rel="stylesheet" href="Styles.css/reset.css" />
+    <link rel="stylesheet" href="Styles.css/variables.css" />
+    <link rel="stylesheet" href="Styles.css/base.css" />
+    <link rel="stylesheet" href="Styles.css/nav.css" />
+    <link rel="stylesheet" href="Styles.css/hero.css" />
+    <link rel="stylesheet" href="Styles.css/search.css" />
+    <link rel="stylesheet" href="Styles.css/candidates.css" />
+    <link rel="stylesheet" href="Styles.css/detail.css" />
+    <link rel="stylesheet" href="Styles.css/themes.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Lens | Home</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <header>
+      <nav id="main-nav" aria-label="Main navigation">
+        <a class="brand" href="index.html">Civic Lens</a>
+        <a class="nav-link" href="about.html">About Us</a>
+
+        <details
+          class="dropdown dropdown-end"
+          id="nav-dropdown"
+          data-theme="dark"
+        >
+          <summary
+            class="btn btn-ghost btn-circle"
+            aria-label="Navigation menu"
+            aria-controls="nav-dropdown-links"
+          >
+            <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h7"
+              />
+            </svg>
+          </summary>
+          <ul
+            id="nav-dropdown-links"
+            class="dropdown-content menu rounded-box civic-menu"
+          >
+            <li class="menu-title">Explore Civic Lens</li>
+            <li><a href="index.html" aria-current="page">Home</a></li>
+            <li><a href="#candidate-search-form">Search candidates</a></li>
+            <li><a href="about.html">About us</a></li>
+          </ul>
+        </details>
+      </nav>
+
+      <div class="accent-strip" aria-hidden="true"></div>
+    </header>
+
+    <main>
+      <section class="hero civic-hero" aria-labelledby="hero-title">
+        <div class="hero-portraits">
+          <img
+            src="assets/images/kathy-hochul.jpg"
+            alt="Kathy Hochul"
+            decoding="async"
+          />
+          <img
+            src="assets/images/alexandria-ocasio-cortez.jpg"
+            alt="Alexandria Ocasio-Cortez"
+            decoding="async"
+          />
+          <img
+            src="assets/images/zohran-mamdani.jpg"
+            alt="Zohran Mamdani"
+            decoding="async"
+          />
+          <img
+            src="assets/images/mike-lawler.jpg"
+            alt="Mike Lawler"
+            decoding="async"
+          />
+          <img
+            src="assets/images/kirsten-gillibrand.jpg"
+            alt="Kirsten Gillibrand"
+            decoding="async"
+          />
+          <img
+            src="assets/images/chuck-schumer.jpg"
+            alt="Chuck Schumer"
+            decoding="async"
+          />
+        </div>
+        <div class="hero-copy">
+          <h1 id="hero-title">Know Your Choice</h1>
+
+          <p>Explore candidates running for office in New York State.</p>
+        </div>
+      </section>
+
+      <section class="candidate-search">
+        <h2>
+          Know What You Need <br />
+          To Know
+        </h2>
+        <h3 class="quiz-button">Begin Matching Quiz ></h3>
+
+        <form class="search-bar" id="candidate-search-form">
+          <label for="candidate-search"
+            >Search by candidate name or ZIP code</label
+          >
+          <input
+            type="search"
+            id="candidate-search"
+            class="search-input"
+            name="query"
+            placeholder="e.g. Zohran Mamdani or 12757"
+            aria-describedby="search-help"
+            required
+          />
+          <p id="search-help">
+            New York State only. ZIP codes can cross voting districts.
+          </p>
+          <button class="btn" type="submit" data-theme="dark">Search</button>
+        </form>
+        <p id="search-status" role="status">Loading preview candidates…</p>
+
+        <div
+          id="candidate-results"
+          class="candidate-grid"
+          role="region"
+          aria-label="Candidate previews"
+          tabindex="0"
+        ></div>
+        <div class="candidate-controls">
+          <button
+            type="button"
+            id="previous-candidates"
+            class="btn btn-circle"
+            data-theme="dark"
+            aria-label="Previous candidates"
+            aria-controls="candidate-results"
+            disabled
+          >
+            <span aria-hidden="true">←</span>
+          </button>
+          <button
+            type="button"
+            id="next-candidates"
+            class="btn btn-circle"
+            data-theme="dark"
+            aria-label="Show more candidates"
+            aria-controls="candidate-results"
+          >
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <dialog
+      id="candidate-detail"
+      class="modal"
+      data-theme="dark"
+      aria-labelledby="detail-name"
+      aria-describedby="detail-notice"
+    >
+      <div class="modal-box detail-box">
+        <div class="detail-topbar">
+          <span class="detail-eyebrow">Civic Lens / Profile</span>
+          <form method="dialog">
+            <button
+              type="submit"
+              class="btn btn-sm btn-circle btn-ghost"
+              aria-label="Close candidate details"
+              autofocus
+            >
+              ✕
+            </button>
+          </form>
+        </div>
+        <div class="detail-header">
+          <div class="avatar">
+            <div class="w-24 rounded-full">
+              <img id="detail-photo" alt="" width="96" height="96" />
+            </div>
+          </div>
+          <div>
+            <h2 id="detail-name"></h2>
+            <p id="detail-party"></p>
+          </div>
+        </div>
+        <p id="detail-notice" class="detail-notice">
+          Preview profile — this is not a verified election record.
+        </p>
+        <dl class="detail-facts">
+          <div>
+            <dt>Office</dt>
+            <dd id="detail-office"></dd>
+          </div>
+          <div>
+            <dt>Area / district</dt>
+            <dd id="detail-district"></dd>
+          </div>
+        </dl>
+        <section class="detail-section">
+          <h3>Work &amp; experience</h3>
+          <p id="detail-bio"></p>
+        </section>
+        <section class="detail-section">
+          <h3>Policy positions</h3>
+          <p id="detail-positions-empty"></p>
+          <ul id="detail-positions"></ul>
+        </section>
+        <section class="detail-section">
+          <h3>Sources</h3>
+          <p id="detail-sources-empty"></p>
+          <ul id="detail-sources"></ul>
+          <p id="detail-verified" class="detail-verified"></p>
+        </section>
+        <div class="modal-action">
+          <form method="dialog">
+            <button type="submit" class="btn">Back to candidates</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button type="submit" aria-label="Close candidate details">
+          Close
+        </button>
+      </form>
+    </dialog>
+
+    <footer>
+      <p>&copy; Civic Lens</p>
+    </footer>
+  </body>
+</html>

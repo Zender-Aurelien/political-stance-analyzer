@@ -1,0 +1,89 @@
+.accent-strip {
+  border: 0;
+  height: 4px;
+  background-color: var(--civic-accent);
+  margin: 3;
+}
+
+#main-nav {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 20px 32px 10px;
+  font-size: 20px;
+}
+
+.dropdown svg {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+#main-nav .dropdown {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+}
+
+#main-nav a {
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.brand {
+  justify-self: start;
+}
+
+.nav-link {
+  grid-column: 2;
+}
+
+#main-nav .dropdown .btn {
+  color: #ffffff;
+}
+
+#main-nav {
+  position: relative;
+  z-index: 20;
+}
+
+#nav-dropdown > summary {
+  list-style: none;
+}
+
+#nav-dropdown > summary::-webkit-details-marker {
+  display: none;
+}
+
+#main-nav .civic-menu {
+  width: min(240px, calc(100vw - 40px));
+  padding: 10px;
+  margin-top: 12px;
+  background-color: #181818;
+  color: var(--color-text);
+  border: 1px solid #414141;
+  border-top: 3px solid var(--civic-panel-accent);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 40%);
+  font-size: 0.95rem;
+  font-weight: 400;
+  z-index: 30;
+}
+
+#main-nav .civic-menu .menu-title {
+  color: #bdbdbd;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+#main-nav .civic-menu a {
+  padding: 12px;
+}
+
+#main-nav .civic-menu a:hover,
+#main-nav .civic-menu a:focus-visible {
+  background-color: #2b2b2b;
+}
+
+#main-nav .civic-menu a[aria-current="page"] {
+  border-left: 2px solid var(--civic-panel-accent);
+}
