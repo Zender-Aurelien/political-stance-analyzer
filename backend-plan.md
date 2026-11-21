@@ -79,7 +79,7 @@ backend/
 ---
 
 ### Sub-Task 1 — Backend Scaffolding
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 **Intent:**
 Create the full `backend/` directory structure with all files as stubs. This establishes the
