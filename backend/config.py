@@ -20,3 +20,7 @@ def watsonx_enabled() -> bool:
 
 def cloudant_configured() -> bool:
     return all(os.getenv(key) for key in ("CLOUDANT_URL", "CLOUDANT_APIKEY", "CLOUDANT_DB_NAME"))
+
+
+def openstates_configured() -> bool:
+    return bool(os.getenv("OPEN_STATES_API_KEY", "").strip())

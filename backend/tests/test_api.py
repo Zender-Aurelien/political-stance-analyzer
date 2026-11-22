@@ -14,6 +14,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("CACHE_PATH", str(tmp_path / "cache.sqlite3"))
     monkeypatch.setenv("ENABLE_WATSONX", "false")
     monkeypatch.delenv("CLOUDANT_URL", raising=False)
+    monkeypatch.delenv("OPEN_STATES_API_KEY", raising=False)
     with TestClient(app) as session:
         yield session
 

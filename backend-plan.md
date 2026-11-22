@@ -157,7 +157,7 @@ never the Cloudant SDK directly.
 ---
 
 ### Sub-Task 3 — Open States API Service + Local Candidate Lookup
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 **Intent:**
 Replace the defunct Google Civic Information API with two complementary lookup services:
