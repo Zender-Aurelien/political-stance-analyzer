@@ -12,6 +12,7 @@ from backend.services.ibm_auth import get_token
 logger = logging.getLogger(__name__)
 
 _JSON_OBJECT_RE = re.compile(r"\{[^{}]*\}", re.DOTALL)
+_JSON_ARRAY_RE = re.compile(r"\[.*\]", re.DOTALL)
 
 
 def _parse_json_sentences(content: str) -> object:
@@ -122,3 +123,102 @@ async def explain_match(answers: dict[str, float], candidate: dict, baseline: st
     except (httpx.HTTPError, KeyError, IndexError, ValueError, TypeError):
         logger.warning("watsonx explanation unavailable; using computed policy comparison.")
         return ""
+
+
+async def generate_quiz_questions(questions: list[dict]) -> list[dict]:
+    """Rephrase the prompt field of each likert question using watsonx.ai.
+
+    Only the ``prompt`` text is rewritten by the model.  All other fields
+    (id, type, topic, section, score, options, helpText) are taken from the
+    original questions and merged back after the call so scoring is unaffected.
+
+    Returns a merged list on success, or ``[]`` on any failure so the caller
+    can fall back to the static question set.
+    """
+    if not watsonx_enabled():
+        return []
+
+    # Only likert questions drive match scoring; demographic questions are untouched.
+    scorable = [q for q in questions if q.get("type") == "likert" and q.get("topic")]
+    if not scorable:
+        return []
+
+    # Build a compact list of id+prompt pairs for the model — no scores or options sent.
+    items = [{"id": q["id"], "prompt": q["prompt"]} for q in scorable]
+    prompt = (
+        "Rephrase each quiz question prompt listed below. "
+        "Keep the same policy meaning but use different, neutral wording. "
+        "Return ONLY valid JSON — a JSON array of objects, one per input. "
+        'Each object must have exactly two keys: "id" (unchanged) and "prompt" (rephrased). '
+        "No prose, no markdown fences, no extra keys. Keep all original ids.\n"
+        + json.dumps(items)
+    )
+
+    try:
+        token = await get_token(os.environ["WATSONX_API_KEY"])
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                os.environ["WATSONX_URL"].rstrip("/") + "/ml/v1/text/generation",
+                params={"version": "2024-05-31"},
+                headers={"Authorization": f"Bearer {token}"},
+                json={
+                    "model_id": os.environ["WATSONX_MODEL_ID"],
+                    "space_id": os.environ["WATSONX_SPACE_ID"],
+                    "input": prompt,
+                    "parameters": {"decoding_method": "greedy", "max_new_tokens": 800},
+                },
+            )
+            response.raise_for_status()
+            generated = response.json()["results"][0]["generated_text"]
+
+        # Parse the JSON array; use a regex fallback for models that wrap it in prose.
+        rephrased_list: list[dict] | None = None
+        try:
+            rephrased_list = json.loads(generated)
+        except (json.JSONDecodeError, ValueError):
+            match = _JSON_ARRAY_RE.search(generated)
+            if match:
+                try:
+                    rephrased_list = json.loads(match.group())
+                except (json.JSONDecodeError, ValueError):
+                    pass
+
+        if not isinstance(rephrased_list, list):
+            logger.warning("watsonx quiz generation: could not parse JSON array from response.")
+            return []
+
+        # Build a lookup of original questions by id for fast merging.
+        originals_by_id: dict[str, dict] = {q["id"]: q for q in questions}
+
+        merged: list[dict] = []
+        for item in rephrased_list:
+            if not isinstance(item, dict):
+                continue
+            qid = item.get("id")
+            new_prompt = item.get("prompt")
+            if not qid or not isinstance(new_prompt, str) or not new_prompt.strip():
+                continue
+            original = originals_by_id.get(qid)
+            if original is None:
+                # Skip items whose id does not exist in the originals.
+                logger.debug("watsonx quiz generation: unknown question id %r — skipped.", qid)
+                continue
+            merged.append({**original, "prompt": new_prompt.strip()})
+
+        # Require at least half the scorable questions to be rephrased; otherwise
+        # the model response is too incomplete to be useful.
+        if len(merged) < len(scorable) / 2:
+            logger.warning(
+                "watsonx quiz generation: only %d/%d questions rephrased — discarding.",
+                len(merged), len(scorable),
+            )
+            return []
+
+        # Build the final list: replace prompts for questions that were rephrased,
+        # keep all others (including demographic questions) verbatim.
+        rephrased_by_id: dict[str, dict] = {q["id"]: q for q in merged}
+        return [rephrased_by_id.get(q["id"], q) for q in questions]
+
+    except (httpx.HTTPError, KeyError, IndexError, ValueError, TypeError):
+        logger.warning("watsonx quiz generation unavailable; returning static questions.")
+        return []

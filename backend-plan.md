@@ -274,7 +274,13 @@ direct REST calls to the watsonx.ai API:
 ---
 
 ### Sub-Task 5 — Candidates Endpoint
-**Status:** `[ ] pending`
+**Status:** `[x] done`
+
+> **Architecture note (November 2026):** Fully implemented during scaffolding. `routers/candidates.py`
+> handles both `GET /api/candidates` and `GET /api/candidates/{id}/profile`. ZIP validation, Open States
+> merge, local JSON fallback, deduplication, and profile enrichment via `synchronize_profile()` are all
+> in place. `analyze_stances()` and Cloudant stance caching are not needed — positions come from
+> `data/candidates.json`. The router is registered in `main.py`.
 
 **Intent:**
 Implement `GET /api/candidates?zip=` in `routers/candidates.py`. This is the primary endpoint
