@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="color-scheme" content="light dark" />
-    <script src="JS/theme.js?v=20261122-auto-final"></script>
+    <script src="JS/theme.js?v=20261122-a11y2"></script>
+    <script src="accessibility/accessibility.js?v=20261122-a11y2"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script type="module" src="JS/main.js?v=20261122-navigation"></script>
@@ -17,6 +18,7 @@
     <link rel="stylesheet" href="Styles.css/quiz.css?v=20261122-button-red-restored" />
     <link rel="stylesheet" href="Styles.css/detail.css" />
     <link rel="stylesheet" href="Styles.css/themes.css?v=20261122-navigation" />
+    <link rel="stylesheet" href="accessibility/accessibility.css?v=20261122-a11y2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Civic Lens | Home</title>
     <link
@@ -26,6 +28,7 @@
   </head>
 
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <header>
       <nav id="main-nav" aria-label="Main navigation">
         <a class="brand" href="index.html">Civic Lens</a>
@@ -71,7 +74,7 @@
       <div class="accent-strip" aria-hidden="true"></div>
     </header>
 
-    <main>
+    <main id="main-content" tabindex="-1">
       <section class="hero civic-hero" aria-labelledby="hero-title">
         <div class="hero-portraits">
           <img

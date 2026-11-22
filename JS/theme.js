@@ -4,6 +4,8 @@
     ? window.matchMedia("(prefers-color-scheme: dark)")
     : null;
   const applyTheme = () => {
+    // High contrast (accessibility/accessibility.js) overrides the device mode while it is on.
+    if (document.documentElement.classList.contains("a11y-contrast")) return;
     document.documentElement.dataset.theme = preference?.matches ? "dark" : "light";
   };
   applyTheme();

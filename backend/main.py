@@ -89,5 +89,5 @@ def about():
 
 
 # Mount only public assets. Never expose .env, .git, backend source, or cache.
-for directory in ("JS", "Styles.css", "assets", "data"):
+for directory in ("JS", "Styles.css", "accessibility", "assets", "data"):
     app.mount("/" + directory, _Utf8StaticFiles(directory=ROOT / directory), name=directory)

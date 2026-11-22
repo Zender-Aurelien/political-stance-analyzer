@@ -14,6 +14,7 @@
  */
 
 import { get, set, remove } from "./storage.js";
+import { scrollBehavior } from "../accessibility/motion.js";
 import { getCandidates, getQuizQuestions, submitQuizAnswers, isNewYorkZip } from "./api.js";
 import { scoreCandidate } from "./matching.js";
 import { createMatchDetails } from "./match-details.js";
@@ -237,7 +238,7 @@ function renderQuestion(index) {
   el.querySelector(".quiz-prompt")?.focus({ preventScroll: true });
 
   // Smooth scroll to top of quiz container on each step change
-  getContainer()?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  getContainer()?.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" });
 }
 
 function handleAnswer(q, input) {
@@ -512,7 +513,7 @@ function renderResults(scored, userScores, userZip, ctx = {}) {
   stepEl.querySelector("#quiz-retake")?.addEventListener("click", resetQuiz);
 
   // Scroll up slightly so the results header is visible
-  getContainer()?.scrollIntoView({ behavior: "smooth", block: "start" });
+  getContainer()?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
 }
 
 // ─── Reset ────────────────────────────────────────────────────────────────────
@@ -598,6 +599,6 @@ export async function initQuiz() {
       renderQuestion(0);
     }
 
-    container.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    container.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" });
   });
 }

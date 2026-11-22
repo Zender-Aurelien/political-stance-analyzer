@@ -1,0 +1,591 @@
+/* Accessibility: always-on baseline, the options widget, and the user-selected modes.
+   Load after every other stylesheet so these rules win. */
+
+:root {
+  --a11y-blue: #245fb5;        /* White text on this blue: 6.2:1 */
+  --a11y-blue-hover: #1b4a8f;
+  --a11y-on-blue: #ffffff;
+  --a11y-focus: #1b2330;       /* Focus ring color, at least 3:1 against the page */
+  --a11y-button-border: transparent;
+}
+
+:root[data-theme="dark"] {
+  --a11y-blue: #2563c4;
+  --a11y-blue-hover: #1d4f9e;
+  --a11y-focus: #ffffff;
+  --a11y-button-border: rgb(255 255 255 / 85%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --a11y-blue: #2563c4;
+    --a11y-blue-hover: #1d4f9e;
+    --a11y-focus: #ffffff;
+    --a11y-button-border: rgb(255 255 255 / 85%);
+  }
+}
+
+/* ── Always on ───────────────────────────────────────────────────────────── */
+
+/* Clear focus indicator for keyboard users on every control. */
+:focus-visible {
+  outline: 3px solid var(--a11y-focus) !important;
+  outline-offset: 3px !important;
+}
+
+/* The skip-link target receives focus programmatically; no ring needed there. */
+#main-content:focus {
+  outline: none !important;
+}
+
+.skip-link {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 1000;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: var(--a11y-blue);
+  color: var(--a11y-on-blue) !important;
+  font-weight: 700;
+  text-decoration: underline;
+  transform: translateY(calc(-100% - 24px));
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* Respect the device's reduced-motion setting even without the panel. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.a11y-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Widget ──────────────────────────────────────────────────────────────── */
+
+.a11y-widget {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 900;
+  font-family: "Public Sans", Arial, sans-serif;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.a11y-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 2px solid var(--a11y-button-border);
+  border-radius: 999px;
+  background: var(--a11y-blue);
+  color: var(--a11y-on-blue);
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 25%);
+  cursor: pointer;
+}
+
+.a11y-toggle:hover {
+  background: var(--a11y-blue-hover);
+}
+
+.a11y-toggle svg {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+
+.a11y-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+  width: min(340px, calc(100vw - 32px));
+  max-height: calc(100vh - 110px);
+  max-height: calc(100dvh - 110px);
+  overflow-y: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--a11y-blue);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-strong);
+  box-shadow: var(--shadow);
+}
+
+.a11y-panel[hidden] {
+  display: none;
+}
+
+.a11y-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.a11y-panel h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.a11y-panel h2:focus {
+  outline: none !important;
+}
+
+.a11y-close {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--text-muted);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.a11y-close:hover {
+  background: var(--surface-hover);
+}
+
+.a11y-intro {
+  margin: 6px 0 16px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.a11y-text-size {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+
+.a11y-text-size legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-weight: 700;
+}
+
+.a11y-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--text-muted);   /* 3:1+ edge in both themes */
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Selected state uses a thicker border and bold text, not color alone. */
+.a11y-choice:has(input:checked) {
+  border: 2px solid var(--a11y-blue);
+  font-weight: 700;
+}
+
+.a11y-percent {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.a11y-panel input[type="radio"],
+.a11y-panel input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin: 0;
+  accent-color: var(--a11y-blue);
+  cursor: pointer;
+}
+
+.a11y-options {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.a11y-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--text-muted);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.a11y-switch:hover,
+.a11y-choice:hover {
+  background: var(--surface-hover);
+}
+
+.a11y-switch-text {
+  display: grid;
+  flex: 1;
+}
+
+.a11y-switch-label {
+  font-weight: 600;
+}
+
+.a11y-hint {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Visible On/Off text so state never depends on color. */
+.a11y-state {
+  min-width: 2.5em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.a11y-reset {
+  width: 100%;
+  min-height: 44px;
+  border: 2px solid var(--a11y-blue);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-strong);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.a11y-reset:hover {
+  background: var(--surface-hover);
+}
+
+/* ── Text size ───────────────────────────────────────────────────────────── */
+
+html[data-a11y-text="115"] { font-size: 115%; }
+html[data-a11y-text="130"] { font-size: 130%; }
+html[data-a11y-text="150"] { font-size: 150%; }
+
+/* The nav is sized in pixels; scale it with the rest of the text. */
+html[data-a11y-text] #main-nav { font-size: 1.25rem; }
+
+/* ── High contrast ───────────────────────────────────────────────────────────
+   One fixed palette that replaces the device's light/dark mode while on.
+   accessibility.js also forces data-theme="dark" so DaisyUI components match,
+   and theme.js leaves it alone until high contrast is turned off.
+
+   Target: WCAG AAA. Text 7:1 or more, controls and borders 3:1 or more.
+   Near-black and off-white instead of pure #000/#fff to reduce glare.
+   Ratios below are against the page background #0f0f0f. */
+
+:root.a11y-contrast,
+:root.a11y-contrast[data-theme] {
+  color-scheme: dark;
+  --color-bg: #0f0f0f;
+  --color-text: #f5f5f5;          /* 17.6:1 */
+  --surface: #0f0f0f;
+  --surface-card: #0f0f0f;
+  --surface-muted: #1c1c1c;
+  --surface-hover: #2a2a2a;
+  --surface-input: #0f0f0f;
+  --border: #e0e0e0;              /* 14.4:1, well over 3:1 for borders */
+  --border-soft: #bdbdbd;         /* 10.2:1 */
+  --text-strong: #f5f5f5;
+  --text-secondary: #f5f5f5;
+  --text-muted: #e0e0e0;          /* 14.4:1 */
+  --text-faint: #e0e0e0;
+  --error-text: #ffb3b3;          /* 11.4:1 */
+  --link-color: #ffd84d;          /* Yellow, 14.4:1 */
+  --civic-accent: #ff8a8a;        /* 8.4:1 */
+  --civic-panel-accent: #e0e0e0;
+  --selected-bg: #1c1c1c;
+  --selected-text: #f5f5f5;
+  --top-match-bg: #1c1c1c;
+  --top-match-border: #e0e0e0;
+  --nav-selected-bg: #1a4fa8;     /* White text on it: 7.7:1 */
+  --nav-selected-hover: #153f87;
+  --nav-hover-bg: #f5f5f5;
+  --nav-hover-text: #0f0f0f;
+  --close-text: #9ff0c9;          /* Status colors: 11:1 or more, always with text labels */
+  --close-bg: #0f0f0f;
+  --close-border: #9ff0c9;
+  --partial-text: #ffd84d;
+  --partial-bg: #0f0f0f;
+  --partial-border: #ffd84d;
+  --different-text: #ffb3b3;
+  --different-bg: #0f0f0f;
+  --different-border: #ffb3b3;
+  --shadow: none;
+  --a11y-blue: #1a4fa8;           /* White text on it: 7.7:1 */
+  --a11y-blue-hover: #153f87;
+  --a11y-on-blue: #ffffff;
+  --a11y-focus: #ffd84d;          /* Focus ring: 14.4:1 */
+  --a11y-button-border: #f5f5f5;
+  /* DaisyUI theme tokens (cards, buttons, menus, dialogs). */
+  --color-base-100: #0f0f0f;
+  --color-base-200: #1c1c1c;
+  --color-base-300: #2a2a2a;
+  --color-base-content: #f5f5f5;
+  --color-neutral: #0f0f0f;
+  --color-neutral-content: #f5f5f5;
+}
+
+/* Text and links */
+:root.a11y-contrast a:not(.skip-link, .btn, [aria-current]) {
+  color: var(--link-color) !important;
+}
+
+:root.a11y-contrast :where(.quiz-section-label, .quiz-eyebrow, .about-eyebrow, .about-section-eyebrow,
+  .result-rank, .quiz-top-label) {
+  color: var(--civic-accent) !important;
+}
+
+:root.a11y-contrast :where(dt, .detail-verified, .menu-title) {
+  color: var(--text-muted) !important;
+}
+
+/* Every button, field, and card gets a clear outline instead of a faint shade. */
+:root.a11y-contrast body :where(button, .btn, summary.btn, input:not([type="checkbox"], [type="radio"]),
+  select, textarea, .card, .candidate-card, .modal-box, .civic-menu, .backend-status) {
+  border: 2px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+:root.a11y-contrast body :where(button, .btn):not(.a11y-toggle, #quiz-toggle-btn) {
+  background-color: var(--surface) !important;
+  color: var(--text-strong) !important;
+}
+
+:root.a11y-contrast body :where(button, .btn):not(.a11y-toggle, #quiz-toggle-btn):hover {
+  background-color: var(--surface-hover) !important;
+}
+
+/* Main call-to-action keeps its red, darkened to 8.9:1 with white text. */
+:root.a11y-contrast #quiz-toggle-btn {
+  background-color: #8f1d24 !important;
+  color: #ffffff !important;
+  border: 2px solid #f5f5f5 !important;
+}
+
+/* Current page in the menu: blue fill plus an underline, not color alone. */
+:root.a11y-contrast #main-nav .civic-menu a[aria-current] {
+  background-color: var(--nav-selected-bg) !important;
+  color: #ffffff !important;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+:root.a11y-contrast #main-nav .civic-menu a:not([aria-current]) {
+  color: var(--text-strong) !important;
+}
+
+:root.a11y-contrast #main-nav .civic-menu a:hover:not([aria-current]) {
+  background-color: var(--nav-hover-bg) !important;
+  color: var(--nav-hover-text) !important;
+}
+
+/* Disabled controls are exempt in WCAG, but stay readable and marked by a dashed edge. */
+:root.a11y-contrast body :where(button, .btn):disabled {
+  opacity: 1 !important;
+  color: #b0b0b0 !important;        /* 8.8:1 */
+  border-style: dashed !important;
+}
+
+:root.a11y-contrast body :where(button, .btn):disabled * {
+  color: inherit !important;
+}
+
+/* Faded text (CSS opacity) lowers contrast whatever its color: show it at full strength. */
+:root.a11y-contrast :where(.candidate-facts dt, .detail-facts dt, #detail-district, .about-eyebrow-light) {
+  opacity: 1 !important;
+}
+
+/* Selected text size: yellow edge, thicker, plus bold text (not color alone). */
+:root.a11y-contrast .a11y-choice:has(input:checked) {
+  border: 3px solid var(--link-color) !important;
+}
+
+/* Text that sits on photos gets a solid backing so contrast never depends on the image. */
+:root.a11y-contrast :where(.about-hero-copy, .about-fullbleed-copy) {
+  padding: 20px 24px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background-color: rgb(15 15 15 / 94%);
+  text-shadow: none;
+}
+
+:root.a11y-contrast :where(.about-hero-copy, .about-fullbleed-copy) :where(p, h1, h2) {
+  color: var(--text-strong) !important;
+}
+
+:root.a11y-contrast :where(.about-hero-copy, .about-fullbleed-copy) :where(.about-eyebrow, .about-section-eyebrow) {
+  color: var(--civic-accent) !important;
+}
+
+:root.a11y-contrast .hero-copy {
+  padding: 16px 24px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background-color: rgb(15 15 15 / 94%);
+  text-shadow: none;
+}
+
+:root.a11y-contrast .civic-hero {
+  box-shadow: none;
+}
+
+/* ── Underline links ─────────────────────────────────────────────────────── */
+
+:root.a11y-underline a {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 0.2em;
+}
+
+/* ── Wider text spacing (WCAG 1.4.12) ────────────────────────────────────── */
+
+:root.a11y-spacing body :where(p, li, dd, dt, label, a, button, input, span, h1, h2, h3, h4, legend) {
+  line-height: 1.8 !important;
+  letter-spacing: 0.06em !important;
+  word-spacing: 0.16em !important;
+}
+
+:root.a11y-spacing body p {
+  margin-bottom: 1.2em;
+}
+
+/* ── Simpler font ────────────────────────────────────────────────────────── */
+
+:root.a11y-font body,
+:root.a11y-font body * {
+  font-family: Verdana, Arial, sans-serif !important;
+}
+
+:root.a11y-font body {
+  font-weight: 400 !important;
+}
+
+:root.a11y-font body :where(h1, h2, h3, h4, strong, b, legend) {
+  font-weight: 700 !important;
+}
+
+/* ── Larger buttons and fields ───────────────────────────────────────────── */
+
+:root.a11y-targets body :where(button, .btn, summary, select, input:not([type="checkbox"], [type="radio"])) {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+:root.a11y-targets body :where(input[type="checkbox"], input[type="radio"]) {
+  width: 24px;
+  height: 24px;
+}
+
+:root.a11y-targets #main-nav .civic-menu a {
+  padding: 16px 14px;
+}
+
+/* ── Reduce motion ───────────────────────────────────────────────────────── */
+
+/* Scrolling jumps instantly instead of gliding. Scripts get the same rule from
+   accessibility/motion.js, since a JavaScript "smooth" request ignores CSS. */
+:root.a11y-motion,
+:root.a11y-motion *,
+:root.a11y-motion *::before,
+:root.a11y-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* The candidate row always lands on a whole card instead of stopping mid-way. */
+:root.a11y-motion .candidate-grid {
+  scroll-snap-type: x mandatory;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  .candidate-grid { scroll-snap-type: x mandatory; }
+}
+
+/* ── Operating-system high contrast (forced colors) ──────────────────────────
+   Windows Contrast themes replace colors with the user's own system palette.
+   Use system color keywords so nothing is hard-coded, and restore edges and
+   indicators that relied on backgrounds or shadows, which forced colors removes. */
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight !important;
+  }
+
+  .a11y-toggle,
+  .skip-link {
+    forced-color-adjust: none;
+    background: ButtonFace;
+    color: ButtonText !important;
+    border: 2px solid ButtonText;
+  }
+
+  .a11y-toggle:hover {
+    background: Highlight;
+    color: HighlightText !important;
+  }
+
+  .a11y-panel {
+    border: 2px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .a11y-choice:has(input:checked) {
+    border: 3px solid Highlight;
+  }
+
+  .a11y-hint,
+  .a11y-percent,
+  .a11y-intro {
+    color: CanvasText;
+  }
+
+  body :where(button, .btn, .card, .candidate-card, .modal-box, .civic-menu, .hero-copy) {
+    border: 1px solid ButtonText;
+  }
+
+  #main-nav .civic-menu a[aria-current] {
+    color: Highlight;
+    text-decoration: underline;
+  }
+
+  .accent-strip {
+    background: CanvasText;
+  }
+}
+

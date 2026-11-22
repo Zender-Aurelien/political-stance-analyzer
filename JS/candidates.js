@@ -1,6 +1,7 @@
 import { formatDistrict } from "./profile-format.js";
 import { openDetail } from "./detail.js";
 import { get } from "./storage.js";
+import { scrollBehavior } from "../accessibility/motion.js";
 
 const KEY_RESULT = "cl_quiz_result";
 
@@ -42,9 +43,7 @@ export function initCandidateScrolling() {
     const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
     row.scrollBy({
       left: direction * (card.getBoundingClientRect().width + gap),
-      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "instant"
-        : "smooth",
+      behavior: scrollBehavior(),
     });
   }
 

@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="color-scheme" content="light dark" />
-    <script src="JS/theme.js?v=20261122-auto-final"></script>
+    <script src="JS/theme.js?v=20261122-a11y2"></script>
+    <script src="accessibility/accessibility.js?v=20261122-a11y2"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>About | Civic Lens</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
@@ -18,9 +19,11 @@
     <link rel="stylesheet" href="Styles.css/nav.css?v=20261122-navigation" />
     <link rel="stylesheet" href="Styles.css/about.css" />
     <link rel="stylesheet" href="Styles.css/themes.css?v=20261122-navigation" />
+    <link rel="stylesheet" href="accessibility/accessibility.css?v=20261122-a11y2" />
     <script type="module" src="JS/about.js?v=20261122-navigation"></script>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
 
     <!-- ── NAV ───────────────────────────────────────────────────────────── -->
     <header>
@@ -70,7 +73,7 @@
       <div class="accent-strip" aria-hidden="true"></div>
     </header>
 
-    <main>
+    <main id="main-content" tabindex="-1">
 
       <!-- ── HERO ──────────────────────────────────────────────────────────── -->
       <section class="about-hero" aria-label="About Civic Lens">

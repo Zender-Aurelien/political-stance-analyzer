@@ -6,6 +6,7 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend backend
 COPY JS JS
 COPY Styles.css Styles.css
+COPY accessibility accessibility
 COPY assets assets
 COPY data data
 COPY index.html about.html ./
