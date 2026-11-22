@@ -14,14 +14,14 @@ def cache_path() -> Path:
 
 def watsonx_enabled() -> bool:
     return os.getenv("ENABLE_WATSONX", "false").lower() == "true" and all(
-        os.getenv(key) for key in ("WATSONX_API_KEY", "WATSONX_PROJECT_ID", "WATSONX_URL", "WATSONX_MODEL_ID")
+        os.getenv(key) for key in ("WATSONX_API_KEY", "WATSONX_SPACE_ID", "WATSONX_URL", "WATSONX_MODEL_ID")
     )
 
 
 def watsonx_bios_enabled() -> bool:
     """Public profile summaries are a separate opt-in from private quiz explanations."""
     return os.getenv("ENABLE_WATSONX_BIOS", "false").lower() == "true" and all(
-        os.getenv(key) for key in ("WATSONX_API_KEY", "WATSONX_PROJECT_ID", "WATSONX_URL", "WATSONX_MODEL_ID")
+        os.getenv(key) for key in ("WATSONX_API_KEY", "WATSONX_SPACE_ID", "WATSONX_URL", "WATSONX_MODEL_ID")
     )
 
 

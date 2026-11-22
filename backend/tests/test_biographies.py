@@ -11,7 +11,7 @@ from backend.tests.test_profiles import candidate
 def configure(monkeypatch):
     monkeypatch.setenv("ENABLE_WATSONX_BIOS", "true")
     monkeypatch.setenv("ENABLE_WATSONX", "false")
-    for key in ["WATSONX_API_KEY", "WATSONX_PROJECT_ID", "WATSONX_MODEL_ID"]:
+    for key in ["WATSONX_API_KEY", "WATSONX_SPACE_ID", "WATSONX_MODEL_ID"]:
         monkeypatch.setenv(key, "test-value")
     monkeypatch.setenv("WATSONX_URL", "https://us-south.ml.cloud.ibm.com")
     async def token(_):

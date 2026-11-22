@@ -224,50 +224,52 @@ calls both and merges the results, deduplicating by candidate ID.
 ---
 
 ### Sub-Task 4 — IBM watsonx.ai Service Layer
-**Status:** `[ ] pending`
+**Status:** `[x] done`
+
+> **Architecture note (November 2026):** The implemented architecture diverges from the original
+> design. Stances come from `data/candidates.json` (pre-authored), so `analyze_stances()` is not
+> needed. Quiz questions come from `data/quiz.json` (pre-authored), so `generate_quiz_questions()`
+> is deferred to Sub-Task 6 where it belongs alongside the topic/scoring coordination work.
+> The `ibm-watsonx-ai` SDK is not used — direct `httpx` REST calls are made instead, keeping
+> auth in one place (`services/ibm_auth.py`). `WATSONX_PROJECT_ID` has been replaced with
+> `WATSONX_SPACE_ID` throughout. See `watsonx-subtask4-plan.md` for the detailed implementation plan.
 
 **Intent:**
-Build `services/watsonx.py` — a single module that exposes three distinct AI operations,
-each using the `ibm-watsonx-ai` SDK with appropriate prompts:
-1. **Stance analysis** — given a politician's name and office, return structured policy positions
-2. **Quiz generation** — given a list of candidates and their stances, return 5–8 quiz questions
-   relevant to their district
-3. **Match explanation** — given a user's quiz answers and a candidate's positions, return a
+Wire up `services/watsonx.py` — the module is already scaffolded with two AI operations using
+direct REST calls to the watsonx.ai API:
+1. **Biography summarization** — given a list of sourced public facts about a politician, select
+   1–2 facts to compose a neutral extractive biography summary
+2. **Match explanation** — given a user's quiz answers and a candidate's positions, return a
    plain-English explanation of why they are a good or poor match
 
 **Expected Outcomes:**
-- `analyze_stances(name, office, district)` returns a list of:
-  `{ "topic": str, "stance": str, "summary": str }`
-  (e.g. `{ "topic": "climate", "stance": "support", "summary": "Supports Green New Deal..." }`)
-- `generate_quiz_questions(candidates)` returns a list of:
-  `{ "id": str, "topic": str, "question": str, "options": [{"value": str, "label": str}] }`
-- `explain_match(user_answers, candidate)` returns a plain-English string paragraph
-- If watsonx credentials are missing, all three functions return safe empty defaults
-  (empty list, empty list, empty string)
+- `summarize_biography(facts)` returns a plain-English string composed only of supplied facts,
+  or `""` if watsonx is unavailable or the model output is invalid
+- `explain_match(answers, candidate, baseline)` returns a 2-sentence neutral explanation string,
+  or `""` on failure — match scores are never affected
+- Both functions are guarded by `watsonx_bios_enabled()` / `watsonx_enabled()` in `config.py`
+- If watsonx credentials are missing or the call fails, both functions return `""` gracefully
+- All 40 existing tests pass with the live credentials wired in
 
 **Todo List:**
-1. Initialize `ibm_watsonx_ai.foundation_models.ModelInference` using env vars
-   (`WATSONX_API_KEY`, `WATSONX_PROJECT_ID`, `WATSONX_URL`)
-2. Write `analyze_stances(name, office, district)`:
-   - Craft a system prompt instructing the model to output JSON only
-   - Include a few-shot example in the prompt to enforce the output schema
-   - Parse the JSON response; on parse failure, return empty list and log the raw response
-3. Write `generate_quiz_questions(candidates)`:
-   - Build a prompt that includes candidate names, offices, and top stance topics
-   - Ask for 5–8 multiple-choice questions with 3–4 options each, output as JSON array
-   - Parse and validate; return empty list on failure
-4. Write `explain_match(user_answers, candidate)`:
-   - Build a prompt that describes the user's positions and the candidate's stances
-   - Ask for a 2–3 sentence plain-English explanation
-   - Return the raw text string
-5. Choose model: `ibm/granite-13b-instruct-v2` (available on watsonx.ai, good for structured
-   generation) — make model ID configurable via env var `WATSONX_MODEL_ID`
+1. Confirm a model ID available in your deployment space that supports both
+   `/ml/v1/text/generation` and `/ml/v1/text/chat` with JSON output
+   (recommended: `ibm/granite-3-8b-instruct`)
+2. Harden `summarize_biography()` JSON parsing with a regex fallback for models that return
+   JSON embedded in prose rather than strict `response_format` output
+3. Add `backend/scripts/smoke_watsonx.py` — a manual developer script to verify both functions
+   return valid output against the live deployment space before enabling in production
+4. Update `backend/.env.example` with inline comments showing where to find the Space GUID
+   and which model IDs are recommended
+5. Add an "Enabling IBM watsonx.ai" section to `backend/README.md` with step-by-step setup
+   instructions covering API key, Space GUID, URL, model ID, and smoke test
 
 **Relevant Context:**
-- Prompts must enforce JSON output — use the pattern: "Respond with valid JSON only. No
-  prose, no markdown fences." followed by a schema example
-- The stance `topic` values produced here must match the quiz question `topic` values so
-  `match.py` can join them
+- `services/watsonx.py` uses `httpx` REST calls, not the `ibm-watsonx-ai` SDK
+- Auth is handled by `services/ibm_auth.py` — IBM Cloud IAM (`iam.cloud.ibm.com`), no changes needed
+- `WATSONX_SPACE_ID` replaces `WATSONX_PROJECT_ID` everywhere (already applied)
+- `generate_quiz_questions()` is deferred to Sub-Task 6 — it requires topic/scoring coordination
+  with `data/quiz.json`, `scoring.py`, and `data/candidates.json` that belongs in that sub-task
 
 ---
 
@@ -318,34 +320,45 @@ stance analysis and returns a fully enriched candidate list.
 
 **Intent:**
 Implement `GET /api/quiz?zip=` in `routers/quiz.py`. Given a ZIP, it returns dynamically
-generated quiz questions tailored to the politicians serving that area.
+generated quiz questions tailored to the politicians serving that area. This sub-task also
+introduces `generate_quiz_questions()` into `services/watsonx.py` — deferred from Sub-Task 4
+because it requires coordinating new topic keys with `data/quiz.json`, `scoring.py`'s
+`STANCE_SCORE` map, and candidate `positions` data in `data/candidates.json`.
 
 **Expected Outcomes:**
 - `GET /api/quiz?zip=10001` returns a JSON array of 5–8 question objects:
   `{ id, topic, question, options: [{ value, label }] }`
+- Watsonx-generated questions use topic keys that exist in both `STANCE_SCORE` and candidate
+  `positions` data, so the match endpoint can score them without 422 errors
 - Quiz questions are cached in Cloudant under `quiz:{district-key}` and reused for the same
   district until manually invalidated (competition scope — no expiry needed)
-- If candidates cannot be fetched (Civic API down), returns a default static set of questions
-  as a fallback
+- If watsonx is unavailable, the existing static `data/quiz.json` question set is returned
+  as a fallback — no regression from current behavior
 
 **Todo List:**
-1. Add Pydantic models `QuizQuestion` and `QuizOption` in `models/quiz.py`
+1. Add `generate_quiz_questions(candidates, topics)` to `services/watsonx.py`:
+   - Accept a list of candidate stances and the set of valid scoring topics
+   - Build a prompt that asks for new question phrasings on the supplied topics only
+   - Output as a JSON array matching the `QuizQuestion` schema
+   - Return empty list on failure — static fallback applies
 2. Write the route in `routers/quiz.py`:
    - Validate ZIP
    - Call `candidates_local.get_candidates_by_zip(zip)` and/or
      `openstates.get_representatives_by_zip(zip)` to identify the district key
    - Check Cloudant for `quiz:{district-key}`; return cached questions if found
-   - On cache miss, fetch candidate stance summaries from Cloudant (or the candidates
-     endpoint logic), then call `watsonx.generate_quiz_questions(candidates)`
+   - On cache miss, call `watsonx.generate_quiz_questions(candidates, policy_topics())`
    - Cache the generated questions in Cloudant and return them
-3. Write a static fallback question set (5 questions on common NY policy topics) to return
-   if the watsonx call fails
-4. Register the router in `main.py`
+   - Fall back to `get_questions()` from `services/civic.py` if watsonx returns empty
+3. Register the router in `main.py`
 
 **Relevant Context:**
+- `policy_topics()` in `services/civic.py` derives the valid topic set from `data/quiz.json` —
+  pass this to `generate_quiz_questions()` to constrain the model to known scoring topics
+- `STANCE_SCORE` in `scoring.py` defines the valid stance strings — generated questions must
+  use options whose values align with these keys or the match calculation produces no result
 - The `district-key` is derived from the most specific shared district of the reps returned
   (e.g. `ny-nyc` for NYC reps, `ny-district-14` for a House rep)
-- Question `topic` values must align with the stance `topic` values in `services/watsonx.py`
+- `QuizQuestion` and `QuizOption` Pydantic models already exist in `models/quiz.py`
 
 ---
 

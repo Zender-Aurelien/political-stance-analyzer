@@ -112,7 +112,7 @@ def test_disabled_ai_does_not_call_ibm(client, monkeypatch):
 
 def test_ai_outage_keeps_match_scores(client, monkeypatch):
     import httpx
-    for key in ("WATSONX_API_KEY", "WATSONX_PROJECT_ID", "WATSONX_URL", "WATSONX_MODEL_ID"):
+    for key in ("WATSONX_API_KEY", "WATSONX_SPACE_ID", "WATSONX_URL", "WATSONX_MODEL_ID"):
         monkeypatch.setenv(key, "test")
     monkeypatch.setenv("ENABLE_WATSONX", "true")
     async def unavailable(*args):

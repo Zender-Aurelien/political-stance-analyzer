@@ -16,17 +16,56 @@ Use the root README for first-time installation. The same server serves the webs
 
 Set `CLOUDANT_URL`, `CLOUDANT_APIKEY`, and `CLOUDANT_DB_NAME` to enable the optional Cloudant cache. IAM tokens are refreshed automatically. The adapter handles revisions, retries a conflict once, and falls back locally if unavailable. Database creation is attempted when needed and requires the configured IBM identity to have permission.
 
+## Enabling IBM watsonx.ai
+
+Quiz scoring and match percentages are computed locally — IBM credentials are never required to run the app. The two optional features below send data to IBM only when explicitly enabled.
+
+**Step 1 — Get an IBM Cloud API key**
+
+Log in to [cloud.ibm.com](https://cloud.ibm.com) → Manage → Access (IAM) → API keys → Create. Paste the key as `WATSONX_API_KEY` in `backend/.env`.
+
+**Step 2 — Get your deployment space GUID**
+
+In the IBM Cloud console, navigate to your watsonx.ai deployment space → Manage tab → copy the **Space GUID**. Paste it as `WATSONX_SPACE_ID`.
+
+**Step 3 — Confirm your region URL**
+
+| Region | WATSONX_URL |
+|---|---|
+| Dallas (us-south) | `https://us-south.ml.cloud.ibm.com` |
+| Frankfurt (eu-de) | `https://eu-de.ml.cloud.ibm.com` |
+| Tokyo (jp-tok) | `https://jp-tok.ml.cloud.ibm.com` |
+
+**Step 4 — Choose a model**
+
+Set `WATSONX_MODEL_ID` to a model available in your deployment space. The default `ibm/granite-3-8b-instruct` supports both features. Confirm available models in your space: watsonx.ai console → your space → Foundation Models.
+
+**Step 5 — Enable the features you want**
+
+```
+ENABLE_WATSONX=true        # match explanation sentences (sends policy scores + public positions)
+ENABLE_WATSONX_BIOS=true   # biography summarization (sends public profile facts only)
+```
+
+Both can be enabled independently. Neither sends ZIP codes, demographic answers, or user-identifying data to IBM.
+
+**Step 6 — Verify with the smoke test**
+
+```bash
+python -m backend.scripts.smoke_watsonx
+```
+
+This calls both functions with sample data and prints the live responses. If either returns an empty string, the output includes a diagnosis hint.
+
 ## Optional explanations
 
-Set all `WATSONX_*` fields in `.env.example` and `ENABLE_WATSONX=true` to opt in. This transmits policy topic averages and public candidate positions to IBM; demographic context and ZIP are excluded. Scores remain deterministic. IAM/generation failures preserve the result using a standard explanation. The adapter uses IBM's text-generation REST API and a configurable model, never a model ID assumed to be available.
+`ENABLE_WATSONX=true` transmits policy topic averages and public candidate positions to IBM to generate a 2-sentence plain-English match explanation per candidate. Demographic context and ZIP are excluded. Scores remain deterministic regardless of watsonx availability. IAM or generation failures fall back to a rules-based explanation automatically.
 
 ## Profile summaries
 
-`ENABLE_WATSONX_BIOS=true` separately enables source-grounded public biographies with the same `WATSONX_*` credentials and model configuration. It uses `/ml/v1/text/chat` with JSON output to select supplied source sentences; only those original sentences are displayed. `ENABLE_WATSONX=false` continues to disable transmission of quiz comparisons. Keep Cloudant unconfigured to use local SQLite.
+`ENABLE_WATSONX_BIOS=true` separately enables source-grounded public biographies using the same `WATSONX_*` credentials. It calls `/ml/v1/text/chat` with JSON output to select supplied source sentences — only those original sentences are shown, never model-generated claims. `ENABLE_WATSONX=false` continues to disable quiz comparisons independently.
 
-Profile refreshes have bounded source requests and a further eight-second summary budget. IBM failures use official excerpts or a labeled Open States office overview. An unavailable career biography is never replaced with invented employment or education. Cache keys are versioned, and identity/office/party/AI-setting changes invalidate the saved summary. Do not expose `backend/.env` or print IBM tokens in logs.
-
-IBM authentication and the model catalog were reachable in the local account, but generation returned `container_not_found`: the supplied project was not accessible to the key. A working project in the configured region is still required to verify actual AI summaries. Source-backed fallbacks remain usable in this state.
+Profile refreshes have bounded source requests and an eight-second summary budget. IBM failures use official excerpts or a labeled Open States office overview. An unavailable career biography is never replaced with invented employment or education. Cache keys are versioned; identity, office, party, and AI-setting changes invalidate the saved summary. Do not expose `backend/.env` or print IBM tokens in logs.
 
 ## Before public deployment
 

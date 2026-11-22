@@ -14,3 +14,14 @@ body {
 footer {
     text-align: left;
 }
+
+.footer-ai-note {
+    font-size: 0.75rem;
+    color: var(--text-muted, #6b7280);
+    margin-top: 0.25rem;
+}
+
+.footer-ai-note a {
+    color: inherit;
+    text-decoration: underline;
+}
