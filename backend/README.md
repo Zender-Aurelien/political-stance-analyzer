@@ -20,6 +20,14 @@ Set `CLOUDANT_URL`, `CLOUDANT_APIKEY`, and `CLOUDANT_DB_NAME` to enable the opti
 
 Set all `WATSONX_*` fields in `.env.example` and `ENABLE_WATSONX=true` to opt in. This transmits policy topic averages and public candidate positions to IBM; demographic context and ZIP are excluded. Scores remain deterministic. IAM/generation failures preserve the result using a standard explanation. The adapter uses IBM's text-generation REST API and a configurable model, never a model ID assumed to be available.
 
+## Profile summaries
+
+`ENABLE_WATSONX_BIOS=true` separately enables source-grounded public biographies with the same `WATSONX_*` credentials and model configuration. It uses `/ml/v1/text/chat` with JSON output to select supplied source sentences; only those original sentences are displayed. `ENABLE_WATSONX=false` continues to disable transmission of quiz comparisons. Keep Cloudant unconfigured to use local SQLite.
+
+Profile refreshes have bounded source requests and a further eight-second summary budget. IBM failures use official excerpts or a labeled Open States office overview. An unavailable career biography is never replaced with invented employment or education. Cache keys are versioned, and identity/office/party/AI-setting changes invalidate the saved summary. Do not expose `backend/.env` or print IBM tokens in logs.
+
+IBM authentication and the model catalog were reachable in the local account, but generation returned `container_not_found`: the supplied project was not accessible to the key. A working project in the configured region is still required to verify actual AI summaries. Source-backed fallbacks remain usable in this state.
+
 ## Before public deployment
 
-Live IBM calls are unverified without account credentials. The current dataset is a sample, and the retired Google representative lookup has not been replaced. A production release still needs verified current records, a live location provider if desired, hosting/account configuration, rate limits, and the deployment's own security review. No public deployment was made for this local-demo task.
+The current quiz dataset is a sample. Open States supplies optional live New York state office records; it does not establish a complete election candidate list. A production release still needs verified policy records, hosting/account configuration, rate limits and the deployment's own security review. No public deployment was made for this local-demo task.

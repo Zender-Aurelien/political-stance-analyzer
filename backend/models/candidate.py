@@ -33,8 +33,11 @@ class CandidateResponse(BaseModel):
     providerId: str | None = None
     profileUrl: str | None = None
     biographySource: str | None = None
-    biographyMode: Literal["official_excerpt", "reviewed_summary", "sample", "unavailable"] = "unavailable"
+    biographyMode: Literal["official_excerpt", "reviewed_summary", "watsonx_summary", "office_record", "sample", "unavailable"] = "unavailable"
+    biographyScope: Literal["career", "office"] = "career"
     biographyReviewedAt: str | None = None
+    biographyCheckedAt: str | None = None
     policyEvidence: list[PolicyEvidence] = Field(default_factory=list)
+    legislationCheckedAt: str | None = None
     profileCheckedAt: str | None = None
     profileStatus: Literal["not_requested", "synced", "partial", "unavailable", "cached"] = "not_requested"

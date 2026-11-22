@@ -44,6 +44,16 @@ data/reviewed-backgrounds.json     Dated, attributed background fallbacks
 tests/detail-sync.test.js          Loading, safe text, and profile-switch checks
 ```
 
+### Optional watsonx biographies
+
+Set `ENABLE_WATSONX_BIOS=true` and the four `WATSONX_*` settings to enable public profile summaries independently of quiz explanations. Keep `ENABLE_WATSONX=false` if quiz comparisons should stay local to the existing deterministic service. Only supplied public facts are sent for biography selection; quiz answers, ZIP searches, user identities and sample policy stances are excluded.
+
+The adapter uses IBM's [chat API](https://www.ibm.com/docs/en/watsonx/saas?topic=code-chat). It requests one or two source sentence indexes in JSON and assembles the displayed text from the original sentences. Model-written claims, invalid indexes and malformed results are rejected. A configured model is required; available models vary by project and region. On November 22, 2026, `ibm/granite-4-h-small` was confirmed available in the local account's model catalog.
+
+When a live legislator's biography is blocked, the profile shows **Public office background**, based on the Open States name, office, district and party record. It explicitly says career history is unavailable. This works for any live lookup, not a list of manually selected members. watsonx cannot recover missing career facts without source material. AI-assisted summaries are labeled; an IBM outage falls back to the same source-backed text. Accessible career biographies retain **Work & experience**, source links and reviewed-summary dates.
+
+Every profile uses the same refresh pipeline on opening; this is not a background crawler that continuously downloads every New York official. Complete results expire after six hours; partial results retry after ten minutes. Office changes or a change to the biography opt-in invalidate cached summaries. A failed biography refresh no longer prevents fresh legislative records from being saved. AI summaries and sponsorship records never change match scores. Credentials remain in ignored `backend/.env`.
+
 ## Automatic appearance
 
 The site follows the operating system/browser preference using `prefers-color-scheme`. Light is the fallback when no preference can be detected. The existing dark design is used when the device requests dark mode. Changes apply while the page is open, without a reload or resetting search/quiz progress. There is no theme button or persisted override; legacy stored theme values are ignored.

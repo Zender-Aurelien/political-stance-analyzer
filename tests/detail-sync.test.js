@@ -46,3 +46,15 @@ test("a delayed previous profile cannot overwrite the next person", async () => 
   assert.equal(document.querySelector("#detail-name").textContent, "Second person");
   assert.ok(!document.querySelector("#detail-bio").textContent.includes("First person's"));
 });
+
+test("AI-assisted office background is labeled and never shown as verified career history", async () => {
+  const { openDetail } = await setup();
+  const profile = { id: "example", name: "Example", office: "Senator", district: "New York", dataSource: "live", bio: "Open States lists Example as Senator.", biographyScope: "office", biographyMode: "watsonx_summary", biographySource: "https://www.nysenate.gov/senators/example", positions: [], sources: [], profileStatus: "partial", profileUrl: "/api/candidates/example/profile" };
+  globalThis.fetch = async () => ({ ok: true, json: async () => profile });
+  openDetail(profile);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(document.querySelector("#detail-bio-heading").textContent, "Public office background");
+  assert.match(document.querySelector("#detail-bio-source").textContent, /AI-assisted summary by IBM watsonx/);
+  assert.match(document.querySelector("#detail-bio-source").textContent, /Career history is unavailable/);
+  assert.match(document.querySelector("#detail-sync-status").textContent, /Some background or legislative information is unavailable/);
+});

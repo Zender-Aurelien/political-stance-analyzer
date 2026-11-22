@@ -27,9 +27,11 @@ export function openDetail(candidate, trigger) {
     if (request !== profileRequest || !dialog.open) return;
     renderDetail(profile);
     status.textContent = profile.profileStatus === "cached"
-      ? "Showing saved source information; the latest refresh was unavailable."
+      ? "Some source information is saved from an earlier check. See the source dates below."
       : profile.profileStatus === "unavailable"
         ? "A source update is unavailable. Existing information is labeled below."
+        : profile.profileStatus === "partial"
+          ? "Available public records updated. Some background or legislative information is unavailable."
         : profile.positions?.length && !profile.policyEvidence?.length
           ? "Background sources checked. Sample policy positions have not been verified by this refresh."
           : "Source information updated. Sponsorship records are not a complete policy platform.";
@@ -51,6 +53,7 @@ function renderDetail(candidate) {
   setText("#detail-party", candidate.party || "Party not verified");
   setText("#detail-office", candidate.office || "Not verified");
   setText("#detail-district", formatDistrict(candidate.district));
+  setText("#detail-bio-heading", candidate.biographyScope === "office" ? "Public office background" : "Work & experience");
   setText(
     "#detail-bio",
     (candidate.biographyMode === "official_excerpt" && candidate.bio ? `“${candidate.bio}”` : candidate.bio) ||
@@ -59,11 +62,21 @@ function renderDetail(candidate) {
   );
   const biographySource = dialog.querySelector("#detail-bio-source");
   biographySource.replaceChildren();
+  if (candidate.biographyMode === "watsonx_summary") {
+    biographySource.append(document.createTextNode("AI-assisted summary by IBM watsonx, assembled from the supplied public records. "));
+  }
+  if (candidate.biographyScope === "office") {
+    biographySource.append(document.createTextNode("Career history is unavailable. Office details are from Open States. "));
+  }
+  if (candidate.profileStatus === "cached" && candidate.biographyCheckedAt) {
+    biographySource.append(document.createTextNode(`Background last checked ${new Date(candidate.biographyCheckedAt).toLocaleDateString()}. `));
+  }
   if (candidate.biographySource) {
     const link = safeLink(candidate.biographySource);
     if (link) {
       link.textContent = candidate.biographyMode === "reviewed_summary"
         ? `Official biography · summary reviewed ${candidate.biographyReviewedAt || ""}`
+        : candidate.biographyScope === "office" ? "Official profile"
         : "Read full official biography";
       biographySource.append(link);
     }

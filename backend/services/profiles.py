@@ -1,4 +1,4 @@
-"""Refresh public profile evidence without generating or inferring political views."""
+"""Refresh public evidence and optionally assemble source-grounded biographies."""
 import asyncio
 from datetime import datetime, timezone
 from html.parser import HTMLParser
@@ -10,13 +10,14 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
 
-from backend.config import ROOT
+from backend.config import ROOT, watsonx_bios_enabled
 from backend.models.candidate import CandidateResponse
 from backend.services.cloudant import get_document, save_document
+from backend.services.watsonx import summarize_biography
 
 logger = logging.getLogger(__name__)
 TTL_SECONDS = 6 * 60 * 60
-CACHE_PREFIX = "profile-evidence:v2:"
+CACHE_PREFIX = "profile-evidence:v4:"
 _MAX_HTML_BYTES = 1_500_000
 
 
@@ -27,7 +28,7 @@ def official_url(url: str) -> bool:
         host = (parsed.hostname or "").lower()
         return parsed.scheme == "https" and not parsed.username and not parsed.password and parsed.port in (None, 443) and (
             host in {"www.nysenate.gov", "nysenate.gov", "nyassembly.gov", "www.nyassembly.gov", "assembly.state.ny.us", "www.assembly.state.ny.us", "governor.ny.gov", "ag.ny.gov", "www.nyc.gov", "nyc.gov"}
-            or host.endswith(".house.gov") or host.endswith(".senate.gov")
+            or host == "osc.ny.gov" or host.endswith((".house.gov", ".senate.gov", ".nyc.gov"))
         )
     except (ValueError, TypeError):
         return False
@@ -108,6 +109,8 @@ def _biography_url(candidate: CandidateResponse) -> str | None:
         if not official_url(source):
             continue
         parsed = urlsplit(source)
+        if parsed.hostname == "clerk.house.gov":
+            continue  # This is a chamber directory, not the member's biography site.
         if parsed.hostname in {"www.nysenate.gov", "nysenate.gov"}:
             match = re.match(r"^(/senators/[^/]+)", parsed.path)
             if match:
@@ -116,7 +119,7 @@ def _biography_url(candidate: CandidateResponse) -> str | None:
             match = re.match(r"^(/mem/[^/?]+)", parsed.path)
             if match:
                 return urlunsplit(("https", parsed.netloc, match[1] + "/bio/", "", ""))
-        elif parsed.hostname.endswith((".house.gov", ".senate.gov")) or parsed.hostname in {"governor.ny.gov", "ag.ny.gov", "www.nyc.gov", "nyc.gov"}:
+        elif parsed.hostname.endswith((".house.gov", ".senate.gov", ".nyc.gov")) or parsed.hostname in {"governor.ny.gov", "ag.ny.gov", "osc.ny.gov", "nyc.gov"}:
             return source
     return None
 
@@ -139,6 +142,18 @@ def _excerpt(blocks: list[str]) -> str:
     return preview
 
 
+def _career_facts(blocks: list[str]) -> list[str]:
+    """Only short complete source sentences; no model-written facts are displayed."""
+    facts = []
+    for block in blocks:
+        if re.search(r"cookie|subscribe|newsletter|privacy policy", block, re.I):
+            continue
+        for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z])", block):
+            if 8 <= len(sentence.split()) <= 35 and re.search(r"\b(?:served|worked|teacher|nypd|marines?|lawyer|attorney|career|veteran|business|graduated|degree|elected)\b", sentence, re.I):
+                facts.append(sentence)
+    return list(dict.fromkeys(facts))[:8]
+
+
 async def _background(candidate: CandidateResponse) -> dict:
     url = _biography_url(candidate)
     if url:
@@ -148,7 +163,7 @@ async def _background(candidate: CandidateResponse) -> dict:
                 final_url, parser = page
                 # Non-NY legislature sites have different layouts: follow their biography link.
                 if not re.search(r"/about(?:/|$)|/bio(?:/|$)", urlsplit(final_url).path):
-                    link = next((urljoin(final_url, href) for href, label in parser.links if re.search(r"biography|about (?:the|rep|senator)|^about$|^bio$", label.strip(), re.I) and official_url(urljoin(final_url, href)) and urlsplit(urljoin(final_url, href)).hostname == urlsplit(final_url).hostname), None)
+                    link = next((urljoin(final_url, href) for href, label in parser.links if re.search(r"\bbiography\b|^about(?:\s|$)|^bio$", label.strip(), re.I) and official_url(urljoin(final_url, href)) and urlsplit(urljoin(final_url, href)).hostname == urlsplit(final_url).hostname), None)
                     if link and link != final_url:
                         page = await _official_page(link)
                         if page:
@@ -159,7 +174,7 @@ async def _background(candidate: CandidateResponse) -> dict:
                         return {}
                 excerpt = _excerpt(parser.blocks)
                 if excerpt:
-                    return {"bio": excerpt, "biographySource": final_url, "biographyMode": "official_excerpt"}
+                    return {"bio": excerpt, "biographySource": final_url, "biographyMode": "official_excerpt", "_facts": _career_facts(parser.blocks)}
         except (httpx.HTTPError, ValueError):
             logger.info("Official biography unavailable; retaining attributed background if available.")
     # A reviewed fallback is explicit and dated; it is never presented as a fresh fetch.
@@ -167,6 +182,28 @@ async def _background(candidate: CandidateResponse) -> dict:
     if reviewed:
         return {"bio": reviewed["summary"], "biographySource": reviewed["url"], "biographyMode": "reviewed_summary", "biographyReviewedAt": reviewed["reviewedAt"]}
     return {}
+
+
+async def _complete_background(candidate: CandidateResponse, background: dict) -> dict:
+    facts = background.pop("_facts", [])
+    if not background and candidate.dataSource in {"live", "live+sample"}:
+        # An office overview is useful when an official site blocks biography access.
+        # It is deliberately not passed off as a verified career history.
+        facts = [f"Open States lists {candidate.name} as {candidate.office} for {candidate.district.replace(' · ', ', ')}."]
+        if candidate.party:
+            facts.append(f"The public office record lists the party as {candidate.party}.")
+        background = {
+            "bio": " ".join(facts), "biographyMode": "office_record", "biographyScope": "office",
+            "biographySource": _biography_url(candidate),
+        }
+    if facts and watsonx_bios_enabled():
+        try:
+            summary = await asyncio.wait_for(summarize_biography(facts), timeout=8)
+        except asyncio.TimeoutError:
+            summary = ""
+        if summary:
+            background = {**background, "bio": summary, "biographyMode": "watsonx_summary"}
+    return background
 
 
 async def _legislation(candidate: CandidateResponse) -> list[dict]:
@@ -203,6 +240,9 @@ async def synchronize_profile(candidate: CandidateResponse) -> CandidateResponse
     stored = await get_document(cache_id)
     now = datetime.now(timezone.utc)
     cache_ttl = TTL_SECONDS if stored and stored["fields"].get("profileStatus") == "synced" else 600
+    fingerprint = [candidate.name, candidate.office, candidate.district, candidate.party, watsonx_bios_enabled()]
+    if stored and stored.get("identity") != fingerprint:
+        stored = None
     if stored and now.timestamp() - stored.get("fetchedAt", 0) < cache_ttl:
         return CandidateResponse.model_validate({**candidate.model_dump(), **stored["fields"]})
     async def bounded(operation):
@@ -211,12 +251,28 @@ async def synchronize_profile(candidate: CandidateResponse) -> CandidateResponse
         except asyncio.TimeoutError:
             return None
     background, evidence = await asyncio.gather(bounded(_background(candidate)), bounded(_legislation(candidate)))
-    background, evidence = background or {}, evidence or []
-    if (not background or not evidence) and stored:
+    background = await _complete_background(candidate, background or {})
+    evidence = evidence or []
+    if background:
+        background["biographyCheckedAt"] = now.isoformat()
+    legislation_checked_at = now.isoformat() if evidence else None
+    previous = stored["fields"] if stored else {}
+    # Update independent components, retaining only the unavailable component.
+    # Previously one unavailable source discarded successful updates from the other.
+    if not background and not evidence and stored:
         return CandidateResponse.model_validate({**candidate.model_dump(), **stored["fields"], "profileStatus": "cached"})
-    fields = {**background, "policyEvidence": evidence, "profileStatus": "synced" if background and evidence else "partial" if background or evidence else "unavailable"}
+    retained = False
+    if previous.get("bio") and (not background or background.get("biographyScope") == "office" and previous.get("biographyScope", "career") == "career"):
+        background = {key: value for key, value in previous.items() if key.startswith("biography") or key == "bio"}
+        retained = True
+    if not evidence and previous.get("policyEvidence"):
+        evidence = previous["policyEvidence"]
+        legislation_checked_at = previous.get("legislationCheckedAt")
+        retained = True
+    complete = bool(background and evidence and background.get("biographyScope") != "office")
+    fields = {**background, "policyEvidence": evidence, "legislationCheckedAt": legislation_checked_at, "profileStatus": "cached" if retained else "synced" if complete else "partial" if background or evidence else "unavailable"}
     if background or evidence:
         fields["profileCheckedAt"] = now.isoformat()
-        fields["sources"] = list(dict.fromkeys(candidate.sources + ([background["biographySource"]] if background else []) + [e["url"] for e in evidence]))
-        await save_document(cache_id, {"fetchedAt": now.timestamp(), "fields": fields})
+        fields["sources"] = list(dict.fromkeys(candidate.sources + ([background["biographySource"]] if background.get("biographySource") else []) + [e["url"] for e in evidence]))
+        await save_document(cache_id, {"fetchedAt": now.timestamp(), "identity": fingerprint, "fields": fields})
     return CandidateResponse.model_validate({**candidate.model_dump(), **fields})

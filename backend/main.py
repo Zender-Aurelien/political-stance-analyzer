@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import Response
 
-from backend.config import ROOT, cloudant_configured, openstates_configured, watsonx_enabled
+from backend.config import ROOT, cloudant_configured, openstates_configured, watsonx_enabled, watsonx_bios_enabled
 from backend.routers import candidates, match, quiz
 from backend.services.civic import get_candidates, get_questions
 
@@ -67,6 +67,7 @@ def status():
         "live_representatives": live,
         "scoring": "deterministic",
         "watsonx_enabled": watsonx_enabled(),
+        "watsonx_bios_enabled": watsonx_bios_enabled(),
         "cloudant_configured": cloudant_configured(),
         "openstates_configured": live,
         "notice": (

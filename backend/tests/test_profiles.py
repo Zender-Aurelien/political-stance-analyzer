@@ -17,6 +17,9 @@ def candidate(**updates):
 def test_only_official_hosts_can_be_fetched():
     assert profiles.official_url("https://www.nysenate.gov/senators/example/about")
     assert profiles.official_url("https://assembly.state.ny.us/mem/Example/bio/")
+    assert profiles.official_url("https://comptroller.nyc.gov/about/")
+    assert profiles.official_url("https://advocate.nyc.gov/about/")
+    assert profiles.official_url("https://osc.ny.gov/about/")
     for url in ["http://127.0.0.1", "https://www.nysenate.gov.evil.org", "https://www.nysenate.gov@evil.org", "https://www.nysenate.gov:8080", "file:///etc/passwd"]:
         assert not profiles.official_url(url)
 
@@ -28,6 +31,13 @@ def test_biography_excerpt_ignores_navigation_and_is_short():
     assert "teacher" in text
     assert "Subscribe" not in text
     assert len(text.split()) <= 24
+
+
+def test_profile_sources_prefer_a_personal_page_over_chamber_directories():
+    record = candidate(sources=["https://clerk.house.gov/members/O000172", "https://ocasio-cortez.house.gov/"])
+    assert profiles._biography_url(record) == "https://ocasio-cortez.house.gov/"
+    record.sources = ["https://www.nysenate.gov/senators-committees", "https://www.nysenate.gov/senators/zellnor-myrie/contact"]
+    assert profiles._biography_url(record) == "https://www.nysenate.gov/senators/zellnor-myrie/about"
 
 
 def test_biography_fetch_checks_redirect_destinations(monkeypatch):
