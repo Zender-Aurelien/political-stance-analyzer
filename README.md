@@ -4,12 +4,12 @@ An IBM SkillsBuild project: explore sample New York profiles, answer policy ques
 
 ## Run the complete demo on your Mac
 
-Double-click **Start Civic Lens.command** in this folder. Leave its Terminal window open. The website opens at **http://127.0.0.1:8000**. Press Control+C in that window to stop it. Python 3.12+ is recommended; the first launch installs the backend dependencies if needed.
+Double-click **Start Civic Lens.command** in this folder. Leave its Terminal window open. The website opens at **http://127.0.0.1:8000**. Press Control+C in that window to stop it. Python 3.12+ is required. The launcher finds a compatible installed Python automatically, rebuilds an older local virtual environment if needed (keeping a backup under `backend/.cache/`), and installs or refreshes the declared backend dependencies. It does not install Python itself.
 
 Or use IBM Bob's terminal from the repository root:
 
 ```bash
-python3 -m venv backend/.venv
+python3.12 -m venv backend/.venv
 source backend/.venv/bin/activate
 python -m pip install -r backend/requirements.txt
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
@@ -95,6 +95,8 @@ npm test
 ```
 
 Node 22.13+ is needed only for frontend tests; the website itself has no build step. The existing design uses third-party CSS/fonts from CDNs, so an internet connection gives the full styling.
+
+For a separate verification copy, the launcher accepts `CIVIC_LENS_PORT` (default `8000`) and `CIVIC_LENS_NO_BROWSER=1` (skip opening a browser). These settings do not change the normal double-click workflow.
 
 ## Container preparation
 
