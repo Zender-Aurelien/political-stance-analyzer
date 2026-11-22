@@ -322,7 +322,15 @@ stance analysis and returns a fully enriched candidate list.
 ---
 
 ### Sub-Task 6 — Quiz Endpoint
-**Status:** `[ ] pending`
+**Status:** `[x] done`
+
+> **Architecture note (November 2026):** The implemented approach follows `watsonx-subtask6-plan.md`
+> rather than the original design above. Generating questions on new topics (which would require
+> extending `STANCE_SCORE`, `data/candidates.json`, and match validation) is deferred to a future
+> iteration. Instead, `generate_quiz_questions()` rephrases the existing 15 likert question
+> prompts so the quiz feels fresh each session while keeping all topic keys, scoring math, and
+> match logic completely unchanged. The route and function are both implemented and all 60 tests
+> pass. See `watsonx-subtask6-plan.md` for the full detailed design.
 
 **Intent:**
 Implement `GET /api/quiz?zip=` in `routers/quiz.py`. Given a ZIP, it returns dynamically
@@ -332,39 +340,41 @@ because it requires coordinating new topic keys with `data/quiz.json`, `scoring.
 `STANCE_SCORE` map, and candidate `positions` data in `data/candidates.json`.
 
 **Expected Outcomes:**
-- `GET /api/quiz?zip=10001` returns a JSON array of 5–8 question objects:
-  `{ id, topic, question, options: [{ value, label }] }`
-- Watsonx-generated questions use topic keys that exist in both `STANCE_SCORE` and candidate
-  `positions` data, so the match endpoint can score them without 422 errors
-- Quiz questions are cached in Cloudant under `quiz:{district-key}` and reused for the same
-  district until manually invalidated (competition scope — no expiry needed)
-- If watsonx is unavailable, the existing static `data/quiz.json` question set is returned
-  as a fallback — no regression from current behavior
+- `GET /api/quiz` returns the full question set; with `ENABLE_WATSONX=true` the 15 likert
+  question prompts are rephrased by watsonx — all other fields (`id`, `topic`, `score`,
+  `options`, `section`, `type`) are identical to the static set
+- Topic keys, `STANCE_SCORE`, and match scoring are entirely unchanged — no 422 risk
+- Rephrased questions are cached in Cloudant under `quiz:rephrased:{static_version}` and
+  reused until `data/quiz.json` changes (cache key is a hash of the static payload)
+- If `ENABLE_WATSONX=false` or watsonx is unavailable, the existing static `data/quiz.json`
+  question set is returned — no regression from current behavior
+- `X-Quiz-Version` header reflects the hash of the final returned payload (rephrased or static)
 
-**Todo List:**
-1. Add `generate_quiz_questions(candidates, topics)` to `services/watsonx.py`:
-   - Accept a list of candidate stances and the set of valid scoring topics
-   - Build a prompt that asks for new question phrasings on the supplied topics only
-   - Output as a JSON array matching the `QuizQuestion` schema
-   - Return empty list on failure — static fallback applies
-2. Write the route in `routers/quiz.py`:
-   - Validate ZIP
-   - Call `candidates_local.get_candidates_by_zip(zip)` and/or
-     `openstates.get_representatives_by_zip(zip)` to identify the district key
-   - Check Cloudant for `quiz:{district-key}`; return cached questions if found
-   - On cache miss, call `watsonx.generate_quiz_questions(candidates, policy_topics())`
-   - Cache the generated questions in Cloudant and return them
-   - Fall back to `get_questions()` from `services/civic.py` if watsonx returns empty
-3. Register the router in `main.py`
+**Implemented:**
+1. `generate_quiz_questions(questions)` in `services/watsonx.py`:
+   - Filters to `type == "likert"` questions with a non-null `topic` only — demographic
+     "About You" questions are never sent to the model
+   - Sends only `id` + `prompt` pairs — no `score` arrays, options, or user data
+   - Calls `/ml/v1/text/generation` with `max_new_tokens: 800`, `decoding_method: "greedy"`
+   - Parses the JSON array response with a `_JSON_ARRAY_RE` regex fallback
+   - Requires ≥ 50% of scorable questions rephrased; discards the response if too few returned
+   - Merges rephrased prompts back over the full static list; returns `[]` on any failure
+   - Guarded by `watsonx_enabled()`
+2. `routers/quiz.py` extended with the rephrasing path:
+   - `ENABLE_WATSONX=false` → unchanged behavior, `quiz:{static_version}` cache key
+   - `ENABLE_WATSONX=true` → checks `quiz:rephrased:{static_version}` in Cloudant first;
+     on cache miss calls `generate_quiz_questions()`, caches and returns the result;
+     on empty result falls back to the static set
+3. Three new tests added in `tests/test_api.py` (60 total, all passing):
+   - `test_watsonx_quiz_rephrasing` — rephrased prompt present; topic/score/options unchanged
+   - `test_watsonx_quiz_fallback` — empty generator returns the static set exactly
+   - `test_watsonx_quiz_cache_hit_skips_generate` — second request hits cache, generator called once
 
 **Relevant Context:**
-- `policy_topics()` in `services/civic.py` derives the valid topic set from `data/quiz.json` —
-  pass this to `generate_quiz_questions()` to constrain the model to known scoring topics
-- `STANCE_SCORE` in `scoring.py` defines the valid stance strings — generated questions must
-  use options whose values align with these keys or the match calculation produces no result
-- The `district-key` is derived from the most specific shared district of the reps returned
-  (e.g. `ny-nyc` for NYC reps, `ny-district-14` for a House rep)
-- `QuizQuestion` and `QuizOption` Pydantic models already exist in `models/quiz.py`
+- `policy_topics()` in `services/civic.py` derives the valid topic set from `data/quiz.json`
+- `STANCE_SCORE` in `scoring.py` defines valid stance strings — unchanged by this sub-task
+- `QuizQuestion` and `QuizOption` Pydantic models in `models/quiz.py` — unchanged
+- New topics beyond the current set are out of scope; that work is deferred to a future iteration
 
 ---
 

@@ -156,7 +156,7 @@ async def generate_quiz_questions(questions: list[dict]) -> list[dict]:
 
     try:
         token = await get_token(os.environ["WATSONX_API_KEY"])
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             response = await client.post(
                 os.environ["WATSONX_URL"].rstrip("/") + "/ml/v1/text/generation",
                 params={"version": "2024-05-31"},
@@ -165,11 +165,30 @@ async def generate_quiz_questions(questions: list[dict]) -> list[dict]:
                     "model_id": os.environ["WATSONX_MODEL_ID"],
                     "space_id": os.environ["WATSONX_SPACE_ID"],
                     "input": prompt,
-                    "parameters": {"decoding_method": "greedy", "max_new_tokens": 800},
+                    "parameters": {"decoding_method": "greedy", "max_new_tokens": 1500},
                 },
             )
+            if response.status_code != 200:
+                logger.warning(
+                    "watsonx quiz generation: HTTP %d — %s",
+                    response.status_code, response.text[:400],
+                )
+                return []
             response.raise_for_status()
-            generated = response.json()["results"][0]["generated_text"]
+            data = response.json()
+            result = data["results"][0]
+            generated = result["generated_text"]
+            stop_reason = result.get("stop_reason", "unknown")
+            logger.debug(
+                "watsonx quiz generation: stop_reason=%r, tokens=%d, response=%r",
+                stop_reason, result.get("generated_token_count", 0), generated[:200],
+            )
+            if stop_reason == "max_tokens":
+                logger.warning(
+                    "watsonx quiz generation: output was truncated at token limit "
+                    "(generated_token_count=%d). Attempting partial parse.",
+                    result.get("generated_token_count", 0),
+                )
 
         # Parse the JSON array; use a regex fallback for models that wrap it in prose.
         rephrased_list: list[dict] | None = None
@@ -219,6 +238,15 @@ async def generate_quiz_questions(questions: list[dict]) -> list[dict]:
         rephrased_by_id: dict[str, dict] = {q["id"]: q for q in merged}
         return [rephrased_by_id.get(q["id"], q) for q in questions]
 
-    except (httpx.HTTPError, KeyError, IndexError, ValueError, TypeError):
-        logger.warning("watsonx quiz generation unavailable; returning static questions.")
+    except httpx.HTTPStatusError as exc:
+        logger.warning(
+            "watsonx quiz generation: HTTP %d from %s — %s",
+            exc.response.status_code, exc.request.url, exc.response.text[:400],
+        )
+        return []
+    except httpx.HTTPError as exc:
+        logger.warning("watsonx quiz generation: network error — %s: %s", type(exc).__name__, exc)
+        return []
+    except (KeyError, IndexError, ValueError, TypeError) as exc:
+        logger.warning("watsonx quiz generation: unexpected response shape — %s: %s", type(exc).__name__, exc)
         return []
