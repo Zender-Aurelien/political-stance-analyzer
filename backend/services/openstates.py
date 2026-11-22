@@ -89,6 +89,7 @@ def _map_person(person: dict) -> dict:
     return {
         "id": _slug(person.get("name", "")),
         "providerId": person.get("id"),
+        "providerUrl": person.get("openstates_url"),
         "name": person.get("name", ""),
         "party": person.get("party", ""),
         "office": role.get("title") or {"upper": "State Senator", "lower": "State Assembly Member"}.get(role.get("org_classification"), "State Legislator"),

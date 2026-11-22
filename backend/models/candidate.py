@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Literal
+from backend.models.evidence import SourceCitation
 
 
 class Position(BaseModel):
@@ -31,12 +32,16 @@ class CandidateResponse(BaseModel):
     isPreview: bool = True
     dataSource: Literal["sample", "live", "live+sample"] = "sample"
     providerId: str | None = None
+    providerUrl: str | None = None
     profileUrl: str | None = None
     biographySource: str | None = None
     biographyMode: Literal["official_excerpt", "reviewed_summary", "watsonx_summary", "office_record", "sample", "unavailable"] = "unavailable"
     biographyScope: Literal["career", "office"] = "career"
     biographyReviewedAt: str | None = None
     biographyCheckedAt: str | None = None
+    biographyRunId: str | None = None
+    biographyTraceUrl: str | None = None
+    biographyCitations: list[SourceCitation] = Field(default_factory=list)
     policyEvidence: list[PolicyEvidence] = Field(default_factory=list)
     legislationCheckedAt: str | None = None
     profileCheckedAt: str | None = None
