@@ -63,6 +63,7 @@ def get_candidates_by_zip_local(zip_code: str) -> list[dict]:
             "summary": record.get("summary", ""),
             "lastVerified": record.get("lastVerified"),
             "isPreview": True,
+            "zips": zips,
             "source": "local",
         })
     return results
@@ -90,6 +91,9 @@ async def get_candidates_merged(zip_code: str) -> list[CandidateResponse]:
         _openstates(zip_code),
     )
 
+    if not live_records:
+        return get_candidates(zip_code)
+
     # Index local records by id for O(1) merge lookups.
     local_by_id: dict[str, dict] = {r["id"]: r for r in local_records}
 
@@ -111,6 +115,7 @@ async def get_candidates_merged(zip_code: str) -> list[CandidateResponse]:
             # photo: prefer local asset path; fall back to Open States URL
             "photo": local.get("photo_url") or live.get("photo_url") or "",
             "source": "live+sample" if local else "live",
+            "zips": local.get("zips", []),
         }
 
     # Add any local-only records not already covered by Open States.
@@ -135,10 +140,11 @@ async def get_candidates_merged(zip_code: str) -> list[CandidateResponse]:
                 "summary": data.get("summary") or "",
                 "bio": data.get("bio") or "",
                 "positions": data.get("positions") or [],
-                "zips": [],
+                "zips": data.get("zips") or [],
                 "sources": data.get("sources") or [],
                 "lastVerified": data.get("lastVerified"),
                 "isPreview": data.get("isPreview", True),
+                "dataSource": {"local": "sample", "live": "live", "live+sample": "live+sample"}[data["source"]],
             }))
         except Exception:
             logger.warning("civic: skipping malformed candidate record id=%s", data.get("id"))

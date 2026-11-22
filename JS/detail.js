@@ -31,7 +31,9 @@ export function openDetail(candidate, trigger) {
   );
   setText(
     "#detail-notice",
-    candidate.isPreview !== false
+    candidate.dataSource === "live" || candidate.dataSource === "live+sample"
+      ? "Office details from Open States. ZIP coverage is approximate; this is not an election candidate list."
+      : candidate.isPreview !== false
       ? "Preview profile — this is not a verified election record."
       : "Check the sources and verification date before relying on this profile.",
   );

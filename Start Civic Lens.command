@@ -38,7 +38,7 @@ if [ "$app_port" -lt 1 ] || [ "$app_port" -gt 65535 ]; then
   exit 1
 fi
 app_url="http://127.0.0.1:$app_port"
-if curl --fail --silent "$app_url/api/status" 2>/dev/null | backend/.venv/bin/python -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("scoring")=="deterministic" and d.get("data_source")=="sample" else 1)' 2>/dev/null; then
+if curl --fail --silent "$app_url/api/status" 2>/dev/null | backend/.venv/bin/python -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("scoring")=="deterministic" and d.get("data_source") in ("sample", "live+sample") else 1)' 2>/dev/null; then
   printf '\nCivic Lens is already running: %s\n' "$app_url"
   if [ "${CIVIC_LENS_NO_BROWSER:-0}" != "1" ]; then open "$app_url"; fi
   exit 0

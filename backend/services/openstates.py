@@ -90,13 +90,13 @@ def _map_person(person: dict) -> dict:
         "id": _slug(person.get("name", "")),
         "name": person.get("name", ""),
         "party": person.get("party", ""),
-        "office": role.get("title", ""),
-        "district": str(role.get("district", "")),
+        "office": role.get("title") or {"upper": "State Senator", "lower": "State Assembly Member"}.get(role.get("org_classification"), "State Legislator"),
+        "district": f"New York · District {role['district']}" if role.get("district") else "New York · Statewide",
         "photo_url": person.get("image") or None,
         "website": links[0].get("url") if links else None,
         # No local positions data — watsonx or Cloudant will enrich these.
         "positions": [],
-        "sources": [links[0].get("url")] if links else [],
+        "sources": [link["url"] for link in links if isinstance(link, dict) and link.get("url")],
         "source": "openstates",
     }
 
@@ -118,6 +118,9 @@ async def get_representatives_by_zip(zip_code: str) -> list[dict]:
         logger.warning("openstates: OPEN_STATES_API_KEY not set; skipping live lookup")
         return []
 
+    if not re.fullmatch(r"(?:1[0-4][0-9]{3}|00501|00544|06390)", zip_code):
+        return []
+
     coords = await _zip_to_latlon(zip_code)
     if coords is None:
         return []
@@ -128,16 +131,17 @@ async def get_representatives_by_zip(zip_code: str) -> list[dict]:
         async with httpx.AsyncClient(timeout=8) as client:
             response = await client.get(
                 "https://v3.openstates.org/people.geo",
-                params={"lat": lat, "lng": lon, "apikey": api_key},
+                params={"lat": lat, "lng": lon, "include": "links"},
+                headers={"X-API-KEY": api_key},
             )
             response.raise_for_status()
             people = response.json().get("results") or []
-    except (httpx.HTTPError, ValueError, KeyError) as exc:
-        logger.warning("openstates: people.geo failed for ZIP %s — %s", zip_code, exc)
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        logger.warning("openstates: people.geo lookup unavailable; using sample profiles")
         return []
 
     ny_people = [
         p for p in people
-        if "new york" in (p.get("jurisdiction", {}).get("name") or "").lower()
+        if isinstance(p, dict) and "new york" in ((p.get("jurisdiction") or {}).get("name") or "").lower()
     ]
     return [_map_person(p) for p in ny_people]

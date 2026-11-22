@@ -4,6 +4,8 @@ An IBM SkillsBuild project: explore sample New York profiles, answer policy ques
 
 ## Run the complete demo on your Mac
 
+Live New York state legislator lookup is available for ZIP searches when `OPEN_STATES_API_KEY` is set in the private `backend/.env` file. Only this key is needed for Open States; IBM services remain optional. The lookup uses a representative ZIP location, so it cannot identify every district crossed by a ZIP. Results identify live office records separately from bundled sample profiles. Quiz matching continues to use the sample policy positions; live officials without verified positions are not assigned invented match scores.
+
 Double-click **Start Civic Lens.command** in this folder. Leave its Terminal window open. The website opens at **http://127.0.0.1:8000**. Press Control+C in that window to stop it. Python 3.12+ is required. The launcher finds a compatible installed Python automatically, rebuilds an older local virtual environment if needed (keeping a backup under `backend/.cache/`), and installs or refreshes the declared backend dependencies. It does not install Python itself.
 
 Or use IBM Bob's terminal from the repository root:

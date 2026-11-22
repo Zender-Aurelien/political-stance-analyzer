@@ -30,7 +30,10 @@ export function initSearch() {
         : search ? await getCandidatesByName(search.query) : await getCandidates();
       if (current !== requestId) return;
       renderCards(candidates);
-      status.textContent = candidates.length
+      const liveCount = candidates.filter(candidate => candidate.dataSource === "live" || candidate.dataSource === "live+sample").length;
+      status.textContent = liveCount
+        ? `${liveCount} state legislator ${liveCount === 1 ? "profile" : "profiles"} from Open States + ${candidates.length - liveCount} sample profiles. ZIP lookup uses an approximate location; verify your district. Policy matching still uses sample profiles.`
+        : candidates.length
         ? `${candidates.length} sample ${candidates.length === 1 ? "profile" : "profiles"}${search ? ` matching “${search.query}”` : ""}. ZIP coverage is approximate; these are not verified live election records.`
         : `No sample profiles found for “${search.query}”. Try a New York ZIP such as 10027, or a candidate name.`;
     } catch {

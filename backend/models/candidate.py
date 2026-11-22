@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Literal
 
 
 class Position(BaseModel):
@@ -21,3 +22,4 @@ class CandidateResponse(BaseModel):
     sources: list[str] = Field(default_factory=list)
     lastVerified: str | None = None
     isPreview: bool = True
+    dataSource: Literal["sample", "live", "live+sample"] = "sample"
