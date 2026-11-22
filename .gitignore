@@ -10,3 +10,12 @@ __pycache__/
 .cache/
 .DS_Store
 *.log
+
+# Editors, OS, and tooling
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+coverage/
+.coverage
+dist/
