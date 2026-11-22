@@ -1,3 +1,5 @@
+> Implementation status (November 22, 2026): the local demo backend is implemented with candidate search, shared quiz questions, deterministic scoring, public-data caching, and optional IBM adapters. The frontend and API run together. The Google Representatives API named below was retired April 30, 2025, so local ZIP search uses explicitly labeled sample coverage. Live representative lookup and public deployment are not complete; the remaining text is the original design proposal, not a description of currently deployed services.
+
 # Civic Lens — Backend Plan
 
 ## Overview

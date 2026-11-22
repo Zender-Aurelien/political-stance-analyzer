@@ -1,202 +1,106 @@
 # Civic Lens
 
-**An IBM SkillsBuild project** — a civics web application that helps users discover politicians who match their values and beliefs.
+An IBM SkillsBuild project: explore sample New York profiles, answer policy questions, and compare values matches.
 
-Civic Lens lets users enter their ZIP code, take a short values-based quiz, and receive a list of elected officials serving their area along with AI-generated match scores and plain-English explanations of why each politician aligns — or doesn't — with their positions.
+## Run the complete demo on your Mac
 
-> Currently scoped to New York State.
+Double-click **Start Civic Lens.command** in this folder. Leave its Terminal window open. The website opens at **http://127.0.0.1:8000**. Press Control+C in that window to stop it. Python 3.12+ is recommended; the first launch installs the backend dependencies if needed.
 
----
-
-## Features
-
-- **ZIP-based politician lookup** — enter any New York ZIP code to see the elected officials representing that area (federal, state, and local)
-- **AI-powered stance analysis** — IBM watsonx.ai summarizes each politician's public positions on key policy topics
-- **Values quiz** — answer questions about issues that matter to you; questions are generated dynamically based on the politicians in your district
-- **Match scoring** — get a percentage match score and a plain-English explanation for each politician
-- **Candidate detail panel** — view full profiles including office, district, policy positions, and sources
-- **Dark / light mode** — persisted across sessions
-- **Recent searches** — your last 5 ZIP searches are saved locally for quick re-access
-- **Offline fallback** — if the backend is unavailable, the app falls back to a local static dataset
-
----
-
-## Tech Stack
-
-### Frontend
-| Layer | Technology |
-|---|---|
-| Markup | Vanilla HTML5 |
-| Styles | Vanilla CSS (custom properties, no framework) |
-| Scripts | Vanilla JavaScript ES modules |
-| Persistence | `localStorage` (no accounts required) |
-
-### Backend
-| Layer | Technology |
-|---|---|
-| Framework | Python + FastAPI |
-| Hosting | IBM Code Engine (containerized) |
-| Database | IBM Cloudant (NoSQL) |
-| AI | IBM watsonx.ai (`ibm/granite-13b-instruct-v2`) |
-| Politician data | Google Civic Information API |
-
----
-
-## Project Structure
-
-```
-civic-lens/
-├── index.html                # Home page — search, candidate cards, quiz, detail panel
-├── about.html                # About page — mission, data sources, privacy notice
-│
-├── JS/                       # Frontend JavaScript modules
-│   ├── main.js               # Entry point — bootstraps all modules
-│   ├── api.js                # Data-access layer (calls backend, falls back to local JSON)
-│   ├── candidates.js         # Candidate card rendering & carousel
-│   ├── detail.js             # Candidate detail modal
-│   ├── quiz.js               # Quiz rendering, answer collection, match display
-│   ├── search.js             # ZIP/name search logic
-│   ├── nav.js                # NAV dropdown, recent searches
-│   ├── storage.js            # localStorage helpers
-│   ├── theme.js              # Dark/light mode toggle
-│   └── slideshow.js          # Hero image slideshow
-│
-├── Styles.css/               # Stylesheets
-│   ├── variables.css         # CSS custom properties (colors, spacing, typography)
-│   ├── base.css              # Global body, typography, links
-│   ├── nav.css               # Navigation bar styles
-│   ├── hero.css              # Hero banner styles
-│   ├── candidates.css        # Candidate card grid
-│   ├── detail.css            # Candidate detail panel
-│   ├── quiz.css              # Quiz section styles
-│   ├── search.css            # Search bar styles
-│   ├── about.css             # About page styles
-│   ├── themes.css            # Light-mode overrides
-│   └── reset.css             # Browser normalization
-│
-├── data/
-│   └── candidates.json       # Static fallback candidate data (6 NY politicians)
-│
-├── assets/
-│   └── images/               # Candidate headshots
-│
-├── backend/                  # Python FastAPI backend
-│   ├── main.py               # App entry point, CORS, health check
-│   ├── requirements.txt      # Python dependencies
-│   ├── Dockerfile            # Container image for IBM Code Engine
-│   ├── .env.example          # Required environment variable template
-│   ├── routers/
-│   │   ├── candidates.py     # GET /api/candidates?zip=
-│   │   ├── quiz.py           # GET /api/quiz?zip=
-│   │   └── match.py          # POST /api/match
-│   ├── services/
-│   │   ├── civic.py          # Google Civic Information API client
-│   │   ├── watsonx.py        # IBM watsonx.ai client
-│   │   └── cloudant.py       # IBM Cloudant read/write helpers
-│   └── models/
-│       ├── candidate.py      # Pydantic models for candidate/stance data
-│       └── quiz.py           # Pydantic models for quiz questions and match results
-│
-├── civic-lens-plan.md        # Frontend build plan
-└── backend-plan.md           # Backend build plan
-```
-
----
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Health check — returns `{"status":"ok"}` |
-| `GET` | `/api/candidates?zip={zip}` | Returns enriched politician list for a ZIP code |
-| `GET` | `/api/quiz?zip={zip}` | Returns AI-generated quiz questions for a district |
-| `POST` | `/api/match` | Scores user answers against candidates, returns match % + explanation |
-
----
-
-## Local Development Setup
-
-### Prerequisites
-- Python 3.11+
-- A modern browser (no build step needed for the frontend)
-
-### Backend
+Or use IBM Bob's terminal from the repository root:
 
 ```bash
-cd backend
-
-# Create and activate a virtual environment
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate   # macOS/Linux
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment variables
-copy .env.example .env        # Windows
-# cp .env.example .env        # macOS/Linux
-# Edit .env and fill in your API keys (see Environment Variables below)
-
-# Start the development server
-uvicorn main:app --reload
-# Server runs at http://localhost:8000
-# Health check: http://localhost:8000/health
+python3 -m venv backend/.venv
+source backend/.venv/bin/activate
+python -m pip install -r backend/requirements.txt
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-### Frontend
+Open http://127.0.0.1:8000. The banner should say **Backend connected**. Both the frontend and API run on this one server. Do not open index.html directly: browser modules and data requests require an HTTP server.
 
-Open `index.html` directly in a browser, or serve it with any static file server:
+## What works
+
+- Automatic light/dark appearance follows the device, including live changes, with no theme switch.
+- Name search and approximate New York ZIP filtering across 17 sample profiles.
+- A 22-question quiz: 7 optional context questions and 15 required policy questions.
+- Server-side scoring across shared policy topics, ranked results, explanations, and candidate-card badges.
+- Back/next navigation, saved progress, saved results, retakes, and accessible progress/error feedback.
+- Static preview fallback if the backend is unavailable, with an explicit offline message.
+- Public quiz-reference cache persisted in local SQLite; optional Cloudant adapter.
+- Optional IBM watsonx.ai explanations with deterministic explanations on failure. The LLM never calculates match percentages.
+
+## Automatic appearance
+
+The site follows the operating system/browser preference using `prefers-color-scheme`. Light is the fallback when no preference can be detected. The existing dark design is used when the device requests dark mode. Changes apply while the page is open, without a reload or resetting search/quiz progress. There is no theme button or persisted override; legacy stored theme values are ignored.
+
+`JS/theme.js` is a small blocking head script on both pages. It sets the root `data-theme` before styles load so DaisyUI controls inherit the same mode without a mismatched initial frame. It listens for system changes, including the older Safari listener API. Native controls and scrollbars follow CSS `color-scheme`; a CSS media-query fallback supplies the correct palette if JavaScript is unavailable.
+
+```text
+JS/
+  theme.js                 Device preference detection and live updates
+Styles.css/
+  variables.css            Shared light/dark color palettes and CSS fallback
+  themes.css               Theme colors for all page components
+tests/
+  theme.test.js            Initial preference, live changes, fallback, and page wiring
+```
+
+Keep theme decisions on the document root. Do not add fixed `data-theme="dark"` attributes to individual cards, dialogs, or controls. Use the shared color variables for new components. Hero photos retain dark overlays and white text in both modes for readability.
+
+## Data and production limits
+
+This is a **local working demo using sample data**, not a verified election guide. Profiles, positions, and ZIP coverage come from `data/candidates.json`; ZIP codes can cross districts. All profiles are labeled as previews. No live representatives service is connected.
+
+The original plan used Google's Representatives API, which was [retired April 30, 2025](https://groups.google.com/g/google-civicinfo-api/c/lR8kT7Uc0sE). That endpoint is not called. A replacement provider and verified current position records are needed before presenting live representative results.
+
+IBM services are optional and disabled/unconfigured by default. To configure them, copy `backend/.env.example` to `backend/.env`. Never commit credentials. Pick a watsonx text-generation model available in your own project and region. Cloud adapters have mocked failure tests; live IBM credentials and deployment have not been verified.
+
+## Scoring and privacy
+
+Each policy answer maps to −2…+2, including reversed questions. Answers are averaged per topic. The backend calculates `round(100 − mean absolute difference × 25)` across topics with known candidate stances. Sample ZIP coverage adds 4 points, capped at 100. Missing shared policy data produces no score, rather than an invented neutral match.
+
+Quiz answers and results are saved in browser localStorage. Only policy topic averages, candidate IDs, and an optional ZIP reach the backend; they are not persisted there. Demographic context stays in the browser. If an operator explicitly enables watsonx, policy scores and public candidate positions are sent to IBM for explanations. The public reference cache contains no user answers.
+
+## API
+
+Interactive API documentation: http://127.0.0.1:8000/docs
+
+| Method | Route | Behavior |
+|---|---|---|
+| GET | `/health` | Server health |
+| GET | `/api/status` | Demo source and integration configuration |
+| GET | `/api/candidates` | All sample profiles |
+| GET | `/api/candidates?zip=10027` | Profiles with sample ZIP coverage, including statewide records |
+| GET | `/api/quiz` | Reviewed quiz questions shared with the frontend |
+| POST | `/api/match` | Ranked scores and explanations |
+
+Example match request:
+
+```json
+{
+  "answers": { "housing": 1.5, "healthcare": 0, "climate": 2 },
+  "candidate_ids": ["zohran-mamdani", "mike-lawler"],
+  "zip": "10027"
+}
+```
+
+Unknown topics, invalid scores, duplicate candidate IDs, and malformed ZIPs return 422. Unknown candidates return 404. Non-New York ZIP searches return an empty list; non-New York ZIPs on match requests return 422. No matching user responses are logged or stored.
+
+## Verification
 
 ```bash
-# Using Python's built-in server from the repo root
-python -m http.server 5500
-# Then open http://localhost:5500
+backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt
+backend/.venv/bin/python -m pytest backend/tests -q
+npm ci
+npm test
 ```
 
----
+Node 22.13+ is needed only for frontend tests; the website itself has no build step. The existing design uses third-party CSS/fonts from CDNs, so an internet connection gives the full styling.
 
-## Environment Variables
+## Container preparation
 
-Copy `backend/.env.example` to `backend/.env` and fill in the values below. **Never commit `.env` to version control.**
-
-| Variable | Description | Where to get it |
-|---|---|---|
-| `GOOGLE_CIVIC_API_KEY` | Google Civic Information API key | [Google Cloud Console](https://console.cloud.google.com/apis/credentials) — enable the Civic Information API |
-| `WATSONX_API_KEY` | IBM Cloud API key | [IBM Cloud IAM](https://cloud.ibm.com/iam/apikeys) |
-| `WATSONX_PROJECT_ID` | watsonx.ai project ID | Project → Manage tab → General → Details |
-| `WATSONX_URL` | watsonx.ai regional endpoint | `https://us-south.ml.cloud.ibm.com` (Dallas) or your region |
-| `WATSONX_MODEL_ID` | Foundation model ID | Default: `ibm/granite-13b-instruct-v2` |
-| `CLOUDANT_URL` | Cloudant external endpoint URL | IBM Cloud resource list → your Cloudant instance → Manage tab |
-| `CLOUDANT_APIKEY` | Cloudant API key | Cloudant instance → Service credentials tab |
-| `CLOUDANT_DB_NAME` | Cloudant database name | Choose a name, e.g. `civic-lens` (created automatically) |
-| `FRONTEND_ORIGIN` | Allowed CORS origin | `http://localhost:5500` for local dev; your deployed URL for production |
-
----
-
-## Architecture
-
-```
-Browser (index.html + JS modules)
-        │
-        ▼
-   JS/api.js  ── primary ──▶  FastAPI backend (IBM Code Engine)
-        │                              │
-        └── fallback ──▶               ├── Google Civic Information API
-   data/candidates.json                ├── IBM watsonx.ai
-                                       └── IBM Cloudant
+```bash
+docker build -f backend/Dockerfile -t civic-lens .
+docker run --rm -p 127.0.0.1:8000:8000 civic-lens
 ```
 
-**Request flow:**
-1. User enters ZIP → `api.js` calls `GET /api/candidates?zip=…`
-2. Backend queries Google Civic API for elected officials in that ZIP
-3. Backend checks Cloudant for cached stances; on cache miss, calls watsonx.ai to summarize positions from public records, then stores the result
-4. Enriched candidate records returned to the frontend
-5. Frontend calls `GET /api/quiz?zip=…` → backend generates district-relevant quiz questions via watsonx.ai
-6. User submits answers → `POST /api/match` → backend computes match % and generates a plain-English explanation per politician
-
----
-
-## Team
-
-Built by a team of 5 for the IBM SkillsBuild competition.
+The container serves the same demo and excludes credentials. Docker/IBM Cloud deployment is not part of the verified local setup. See `backend/README.md` for operator details.

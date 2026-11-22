@@ -1,3 +1,4 @@
+import { formatDistrict } from "./profile-format.js";
 import { openDetail } from "./detail.js";
 import { get } from "./storage.js";
 
@@ -10,11 +11,9 @@ const KEY_RESULT = "cl_quiz_result";
 document.addEventListener("quiz-results", (event) => {
   const resultMap = event.detail; // { candidateId: pct }
   document.querySelectorAll(".candidate-card[data-candidate-id]").forEach(card => {
+    card.querySelector(".candidate-match-badge")?.remove();
     const pct = resultMap[card.dataset.candidateId];
     if (pct === undefined) return;
-
-    // Remove any existing badge so re-runs don't double-up
-    card.querySelector(".candidate-match-badge")?.remove();
 
     const badge = document.createElement("span");
     badge.className = "candidate-match-badge";
@@ -73,7 +72,6 @@ export function renderCards(candidates) {
           ? "party-republican"
           : "party-independent";
     card.className = `card candidate-card ${partyClass} bg-base-200 text-base-content w-full`;
-    card.dataset.theme = "dark";
     card.innerHTML = `
       <div class="party-stripe" aria-hidden="true"></div>
       <div class="card-body">
@@ -99,7 +97,7 @@ export function renderCards(candidates) {
     card.querySelector(".candidate-party").textContent = candidate.party;
     card.querySelector('[data-field="office"]').textContent = candidate.office;
     card.querySelector('[data-field="district"]').textContent =
-      candidate.district;
+      formatDistrict(candidate.district);
     card.querySelector(".candidate-summary p").textContent = candidate.summary;
     for (const source of candidate.sources || []) {
       const url = new URL(source, document.baseURI);

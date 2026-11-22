@@ -5,7 +5,7 @@
   background: var(--color-bg, #111111);
   color: var(--color-text, #ffffff);
   border: 1px solid #414141;
-  border-top: 4px solid var(--civic-panel-accent, #991b1b);
+  border-top: 2px solid color-mix(in srgb, var(--party-color, #a3a3a3) 35%, transparent);
   border-radius: 13px;
   font-weight: 400;
   overflow-wrap: anywhere;
@@ -64,4 +64,44 @@
 @media (max-width: 480px) {
   .detail-header { flex-direction: column; align-items: flex-start; }
   .detail-facts { grid-template-columns: 1fr; }
+}
+
+/* Match the card facts while keeping office and location visually distinct. */
+.detail-facts {
+  margin-top: 16px;
+  padding: 12px 0;
+  gap: 0;
+  text-align: center;
+  border: 0;
+  background: transparent;
+}
+.detail-facts > div { padding: 4px 14px; }
+.detail-facts > div + div { border-left: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+.detail-facts dt {
+  color: inherit;
+  opacity: 0.6;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+#detail-office {
+  font-family: Georgia, "Times New Roman", serif;
+  color: inherit;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+#detail-district {
+  color: inherit;
+  opacity: 0.8;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.6;
+  margin-top: 4px;
+}
+@media (max-width: 480px) {
+  .detail-facts { gap: 6px; }
+  .detail-facts > div + div { border-left: 0; padding-top: 4px; }
 }

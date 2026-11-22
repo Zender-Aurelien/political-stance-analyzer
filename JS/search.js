@@ -1,4 +1,4 @@
-import { getCandidates, getCandidatesByName } from "./api.js";
+import { getCandidates, getCandidatesByName, getCandidatesByZip } from "./api.js";
 import { renderCards } from "./candidates.js";
 
 export function classifySearch(value) {
@@ -22,24 +22,17 @@ export function initSearch() {
 
   async function showCandidates(search) {
     const current = ++requestId;
-    if (search?.type === "zip") {
-      row.removeAttribute("aria-busy");
-      renderCards([]);
-      status.textContent =
-        "ZIP lookup is not connected yet. New York coverage and district verification require location data. Try searching by name.";
-      return;
-    }
     row.setAttribute("aria-busy", "true");
     status.textContent = "Loading preview candidates…";
     try {
-      const candidates = search
-        ? await getCandidatesByName(search.query)
-        : await getCandidates();
+      const candidates = search?.type === "zip"
+        ? await getCandidatesByZip(search.query)
+        : search ? await getCandidatesByName(search.query) : await getCandidates();
       if (current !== requestId) return;
       renderCards(candidates);
       status.textContent = candidates.length
-        ? `${candidates.length} preview ${candidates.length === 1 ? "profile" : "profiles"}${search ? ` matching “${search.query}”` : ""}. These are layout samples, not a verified election lineup.`
-        : `No preview profiles found for “${search.query}”. Try another name.`;
+        ? `${candidates.length} sample ${candidates.length === 1 ? "profile" : "profiles"}${search ? ` matching “${search.query}”` : ""}. ZIP coverage is approximate; these are not verified live election records.`
+        : `No sample profiles found for “${search.query}”. Try a New York ZIP such as 10027, or a candidate name.`;
     } catch {
       if (current !== requestId) return;
       renderCards([]);

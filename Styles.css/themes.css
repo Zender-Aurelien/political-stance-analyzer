@@ -1,0 +1,115 @@
+/* Shared semantic colors. Layout and the red quiz action stay the same. */
+body { background-color: var(--color-bg); color: var(--color-text); }
+#main-nav .dropdown .btn { color: var(--color-text); }
+#main-nav .civic-menu { background: var(--surface); color: var(--color-text); border-color: var(--border); box-shadow: var(--shadow); }
+#main-nav .civic-menu .menu-title { color: var(--text-muted); }
+#main-nav .civic-menu a:hover, #main-nav .civic-menu a:focus-visible { background: var(--nav-hover-bg); color: var(--nav-hover-text); }
+#main-nav .civic-menu a[aria-current], #main-nav .civic-menu a:active {
+  background: var(--nav-selected-bg);
+  color: #fff;
+  border-left: 0;
+  border-radius: 6px;
+  box-shadow: none;
+}
+#main-nav .civic-menu a[aria-current]:hover, #main-nav .civic-menu a[aria-current]:focus-visible {
+  background: var(--nav-selected-hover);
+  color: #fff;
+}
+#main-nav .civic-menu a:focus-visible { outline: 2px solid var(--nav-selected-bg); outline-offset: 2px; }
+.civic-hero, .about-hero, .about-split-media img { box-shadow: var(--shadow); }
+
+/* Candidate cards inherit the device theme instead of forcing DaisyUI dark. */
+:root[data-theme="light"] .candidate-card { background: var(--surface-card); color: var(--color-text); box-shadow: 0 2px 8px rgb(25 37 54 / 5%); }
+:root[data-theme="light"] .btn:not(.btn-ghost) { background: var(--surface-muted); color: var(--text-strong); border-color: var(--border); }
+:root[data-theme="light"] .btn:not(.btn-ghost):hover { background: #e3e8ee; }
+.btn:focus-visible { outline-color: var(--civic-accent); }
+.search-input { background: var(--surface-input); color: var(--text-strong); border-color: var(--border); }
+.search-input::placeholder { color: var(--text-muted); opacity: 1; }
+.candidate-match-badge { background: var(--surface); color: var(--text-strong); }
+.backend-status { border-color: var(--border); color: var(--text-secondary); }
+
+/* Profile dialog. */
+#candidate-detail .detail-box { border-color: var(--border); border-top-color: color-mix(in srgb, var(--party-color, #888) 35%, transparent); box-shadow: var(--shadow); }
+.detail-eyebrow, .detail-verified { color: var(--text-muted); }
+.detail-notice { background: var(--surface-muted); color: var(--text-secondary); }
+.detail-section { border-color: var(--border-soft); }
+.detail-section a { color: var(--link-color); }
+
+/* Quiz questions, inputs, and navigation. */
+#quiz-container { background: var(--surface); }
+.quiz-progress-track, .quiz-spinner { background-color: var(--border-soft); }
+.quiz-spinner { background: transparent; border-color: var(--border-soft); border-top-color: var(--civic-accent); }
+#quiz-progress-text, .quiz-loading { color: var(--text-muted); }
+.quiz-section-label { border-color: var(--border-soft); }
+.quiz-prompt { color: var(--text-strong); }
+.quiz-help { color: var(--text-muted); background: var(--surface-muted); border-color: var(--border); }
+.likert-option, .choice-option, .check-option { background: var(--surface-input); border-color: var(--border); color: var(--text-strong); }
+.likert-option:hover, .choice-option:hover, .check-option:hover { background: var(--surface-hover); border-color: var(--text-muted); }
+.likert-label { color: var(--text-strong); }
+.likert-option.selected, .choice-option.selected, .check-option.selected { background: var(--selected-bg); border-color: var(--civic-accent); color: var(--selected-text); }
+.likert-option.selected .likert-label { color: var(--selected-text); }
+.likert-option input[type="radio"], .choice-option input[type="radio"], .check-option input[type="checkbox"] { border-color: var(--text-muted); }
+.likert-option input[type="radio"]:checked, .choice-option input[type="radio"]:checked { background: var(--civic-accent); border-color: var(--civic-accent); box-shadow: inset 0 0 0 3px var(--surface-input); }
+.check-option input[type="checkbox"]:checked { background: var(--civic-accent); border-color: var(--civic-accent); }
+.quiz-text-input input[type="text"] { background: var(--surface-input); border-color: var(--border); color: var(--text-strong); }
+.quiz-text-input input[type="text"]:focus { border-color: var(--civic-accent); }
+.quiz-text-input input::placeholder { color: var(--text-muted); }
+.quiz-text-hint { color: var(--text-muted); }
+.quiz-error { color: var(--error-text); }
+.quiz-nav { border-color: var(--border-soft); }
+:root[data-theme="light"] .quiz-back-btn, :root[data-theme="light"] .quiz-view-candidates-btn { background: transparent !important; border-color: var(--border) !important; color: var(--text-secondary) !important; }
+:root[data-theme="light"] .quiz-back-btn:hover, :root[data-theme="light"] .quiz-view-candidates-btn:hover { background: var(--surface-hover) !important; color: var(--text-strong) !important; }
+
+/* Results and the compact "Why this score?" panel. */
+.quiz-results-title, .quiz-top-name, .quiz-top-pct { color: var(--text-strong); }
+.quiz-results-context { color: var(--text-muted); }
+.ctx-pill { color: var(--text-secondary); background: var(--surface-muted); border-color: var(--border); }
+.quiz-top-match { background: var(--top-match-bg); border-color: var(--top-match-border); border-left-color: var(--civic-accent); }
+.quiz-result-item, .quiz-result-item:hover { background: var(--surface-card); border-color: var(--border); border-left-color: var(--party-color); }
+.result-rank { color: var(--text-faint); }
+.result-name, .result-pct { color: var(--text-strong); }
+.result-meta { color: var(--text-muted); }
+:root[data-theme="light"] .result-avatar { background: #e4e9ef; border-color: var(--border); }
+:root[data-theme="light"] .result-initials { color: var(--text-secondary); }
+:root[data-theme="light"] .result-bar-wrap { background: #e0e5ec; }
+:root[data-theme="light"] .result-bar, :root[data-theme="light"] .quiz-result-item:first-child .result-bar { background: #586b7d; }
+.result-district-badge { background: var(--surface-muted); color: var(--text-secondary); border-color: var(--border); }
+.result-breakdown { border-color: var(--border-soft); }
+.breakdown-toggle, .breakdown-toggle:hover .breakdown-toggle-title { color: var(--text-strong); }
+.breakdown-toggle-meta, .breakdown-description { color: var(--text-muted); }
+.breakdown-chevron { stroke: var(--text-secondary); }
+.breakdown-title, .breakdown-topic-name { color: var(--text-strong); }
+.breakdown-position { color: var(--text-secondary); }
+.breakdown-table thead th { color: var(--text-muted); border-color: var(--border); }
+.breakdown-table td, .breakdown-table tbody th, .breakdown-row { border-color: var(--border-soft); }
+.alignment-close.alignment-count, .alignment-close.alignment-badge { color: var(--close-text); background: var(--close-bg); border-color: var(--close-border); }
+.alignment-partial.alignment-count, .alignment-partial.alignment-badge { color: var(--partial-text); background: var(--partial-bg); border-color: var(--partial-border); }
+.alignment-different.alignment-count, .alignment-different.alignment-badge { color: var(--different-text); background: var(--different-bg); border-color: var(--different-border); }
+.breakdown-method { background: var(--surface-muted); border-color: var(--border); color: var(--text-secondary); }
+.breakdown-summary-note { border-color: var(--close-border); }
+.breakdown-summary-note h4 { color: var(--text-strong); }
+.result-explanation { color: var(--text-secondary); }
+.breakdown-sources { border-color: var(--border-soft); }
+.breakdown-source-label { color: var(--text-secondary); }
+.breakdown-source-link { color: var(--link-color); }
+.breakdown-source-note { color: var(--text-muted); }
+.breakdown-show-all { background: var(--surface-muted); border-color: var(--border); color: var(--link-color); }
+.breakdown-show-all:hover { background: var(--surface-hover); border-color: var(--text-muted); }
+.breakdown-calculation { color: var(--close-text); }
+.quiz-disclaimer { color: var(--text-muted); border-color: var(--border-soft); }
+
+/* About page text changes; image overlays retain their white text. */
+.about-section, .about-step, .about-step:last-child, .about-disclaimer, .about-footer { border-color: var(--border-soft); }
+.about-section h2, .about-subheading, .about-step h3 { color: var(--text-strong); }
+.about-section p, .about-step p { color: var(--text-secondary); }
+.about-section .about-section-eyebrow { color: var(--civic-accent); }
+.about-section code { color: var(--text-secondary); background: var(--surface-muted); border-color: var(--border); }
+.about-img-caption { color: var(--text-muted) !important; }
+.about-disclaimer p { color: var(--text-muted) !important; }
+.about-footer p, .about-footer a { color: var(--text-muted); }
+.about-footer a:hover { color: var(--text-strong); }
+.about-fullbleed-copy h2 { color: #fff; }
+.about-fullbleed-copy p { color: #ddd; }
+.about-section .about-eyebrow-light { color: #fff; }
+
+:root[data-theme="light"] .breakdown-toggle:focus-visible, :root[data-theme="light"] .breakdown-method summary:focus-visible, :root[data-theme="light"] .breakdown-show-all:focus-visible, :root[data-theme="light"] .breakdown-source-link:focus-visible { outline-color: #377d75; }

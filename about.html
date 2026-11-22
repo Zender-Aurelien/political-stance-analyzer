@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light dark" />
+    <script src="JS/theme.js?v=20261122-auto-final"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>About | Civic Lens</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
@@ -11,12 +13,12 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="Styles.css/reset.css" />
-    <link rel="stylesheet" href="Styles.css/variables.css" />
+    <link rel="stylesheet" href="Styles.css/variables.css?v=20261122-navigation" />
     <link rel="stylesheet" href="Styles.css/base.css" />
-    <link rel="stylesheet" href="Styles.css/nav.css" />
+    <link rel="stylesheet" href="Styles.css/nav.css?v=20261122-navigation" />
     <link rel="stylesheet" href="Styles.css/about.css" />
-    <link rel="stylesheet" href="Styles.css/themes.css" />
-    <script type="module" src="JS/about.js"></script>
+    <link rel="stylesheet" href="Styles.css/themes.css?v=20261122-navigation" />
+    <script type="module" src="JS/about.js?v=20261122-navigation"></script>
   </head>
   <body>
 
@@ -29,7 +31,6 @@
         <details
           class="dropdown dropdown-end"
           id="nav-dropdown"
-          data-theme="dark"
         >
           <summary
             class="btn btn-ghost btn-circle"
@@ -165,14 +166,14 @@
           <p class="about-section-eyebrow">Data &amp; Sources</p>
           <h2 id="data-heading">Where the data comes from</h2>
           <p>
-            Candidate profiles are drawn from official government sources including the U.S. House Clerk, Senate records, the New York State Board of Elections, and official campaign and government websites. Each profile links to its source directly.
+            This demo uses 17 included sample profiles with links to government and campaign sources. Positions, offices, and ZIP coverage have not been verified against a current election lineup. Check the linked sources before relying on a profile.
           </p>
           <p>
             Profiles marked <em>"Preview"</em> are layout samples that may not reflect a current election lineup and have not been fully verified. We note verification dates where available.
           </p>
           <h3 class="about-subheading">Your privacy</h3>
           <p>
-            Civic Lens stores nothing on a server. Your quiz answers, ZIP code, and match results live only in your browser's <code>localStorage</code>. No account is required. No data is ever transmitted or sold.
+            Your answers and results are saved in your browser's <code>localStorage</code>. Policy topic scores and an optional ZIP code are sent to the local backend to calculate matches and are not saved there. Optional age, income, housing, employment, education, and community answers stay in your browser. No account is required. IBM AI explanations are disabled in the local demo; if enabled by the operator, policy scores and public candidate positions are sent to IBM watsonx.ai for explanations.
           </p>
           <p>
             Clearing your browser data removes all stored information instantly.
