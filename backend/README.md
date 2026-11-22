@@ -81,6 +81,8 @@ This calls both functions with sample data and prints the live responses. If eit
 
 Profile refreshes have bounded source requests and an eight-second summary budget. IBM failures use official excerpts or a labeled Open States office overview. An unavailable career biography is never replaced with invented employment or education. Cache keys are versioned; identity, office, party, and AI-setting changes invalidate the saved summary. Do not expose `backend/.env` or print IBM tokens in logs.
 
-## Before public deployment
+## Deployment
 
-The current quiz dataset is a sample. Open States supplies optional live New York state office records; it does not establish a complete election candidate list. A production release still needs verified policy records, hosting/account configuration, rate limits and the deployment's own security review. No public deployment was made for this local-demo task.
+The app is deployed on [Render](https://render.com) at **https://civic-lens-latest.onrender.com**. The same Docker image (`backend/Dockerfile`) is used for both local testing and the live deployment. See `backend/deploy.md` for the step-by-step deployment guide.
+
+The current quiz dataset is a sample. Open States supplies optional live New York state office records; it does not establish a complete election candidate list. A production release still needs verified policy records, rate limits, and a full security review before being used as an authoritative election guide.

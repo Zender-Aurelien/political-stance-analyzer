@@ -2,6 +2,8 @@
 
 An IBM SkillsBuild project: explore sample New York profiles, answer policy questions, and compare values matches.
 
+**Live demo:** https://civic-lens-latest.onrender.com
+
 ## Run the complete demo on your Mac
 
 Live New York state legislator lookup is available for ZIP searches when `OPEN_STATES_API_KEY` is set in the private `backend/.env` file. Only this key is needed for Open States; IBM services remain optional. The lookup uses a representative ZIP location, so it cannot identify every district crossed by a ZIP. Results identify live office records separately from bundled sample profiles. Quiz matching continues to use the sample policy positions; live officials without verified positions are not assigned invented match scores.
@@ -141,4 +143,4 @@ docker build -f backend/Dockerfile -t civic-lens .
 docker run --rm -p 127.0.0.1:8000:8000 civic-lens
 ```
 
-The container serves the same demo and excludes credentials. Docker/IBM Cloud deployment is not part of the verified local setup. See `backend/README.md` for operator details.
+The container serves the same demo and excludes credentials. The app is deployed on [Render](https://render.com) at **https://civic-lens-latest.onrender.com** using the same image. See [`backend/deploy.md`](backend/deploy.md) for the full deployment guide and [`backend/README.md`](backend/README.md) for operator details.
