@@ -23,8 +23,14 @@ export function openDetail(candidate, trigger) {
   if (!candidate.profileUrl) return;
   const status = dialog.querySelector("#detail-sync-status");
   status.textContent = "Checking official background and legislative records…";
+  const needsBio = !candidate.bio && !candidate.summary;
+  const needsPositions = !candidate.positions?.length && !candidate.policyEvidence?.length;
+  if (needsBio) dialog.querySelector("#detail-bio").classList.add("detail-loading");
+  if (needsPositions) dialog.querySelector("#detail-positions-empty").classList.add("detail-loading");
   getCandidateProfile(candidate).then(profile => {
     if (request !== profileRequest || !dialog.open) return;
+    dialog.querySelector("#detail-bio").classList.remove("detail-loading");
+    dialog.querySelector("#detail-positions-empty").classList.remove("detail-loading");
     renderDetail(profile);
     status.textContent = profile.profileStatus === "cached"
       ? "Some source information is saved from an earlier check. See the source dates below."
@@ -36,6 +42,8 @@ export function openDetail(candidate, trigger) {
           ? "Background sources checked. Sample policy positions have not been verified by this refresh."
           : "Source information updated. Sponsorship records are not a complete policy platform.";
   }).catch(() => {
+    dialog.querySelector("#detail-bio").classList.remove("detail-loading");
+    dialog.querySelector("#detail-positions-empty").classList.remove("detail-loading");
     if (request === profileRequest && dialog.open) status.textContent = "Sources could not be refreshed. Check the linked official pages.";
   });
 }
