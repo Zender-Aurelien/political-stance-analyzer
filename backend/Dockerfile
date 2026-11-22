@@ -1,14 +1,15 @@
-FROM python:3.11-slim
-
+# Build from the repository root: docker build -f backend/Dockerfile -t civic-lens .
+FROM python:3.12-slim
 WORKDIR /app
-
-# Install dependencies first (layer caching)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application source
-COPY . .
-
+COPY backend/requirements.txt backend/requirements.txt
+RUN pip install --no-cache-dir -r backend/requirements.txt
+COPY backend backend
+COPY JS JS
+COPY Styles.css Styles.css
+COPY assets assets
+COPY data data
+COPY index.html about.html ./
+RUN useradd --create-home civic && mkdir -p backend/.cache && chown -R civic:civic /app
+USER civic
 EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

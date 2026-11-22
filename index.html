@@ -1,20 +1,22 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light dark" />
+    <script src="JS/theme.js?v=20261122-auto-final"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script type="module" src="JS/main.js"></script>
+    <script type="module" src="JS/main.js?v=20261122-navigation"></script>
     <link rel="stylesheet" href="Styles.css/reset.css" />
-    <link rel="stylesheet" href="Styles.css/variables.css" />
+    <link rel="stylesheet" href="Styles.css/variables.css?v=20261122-navigation" />
     <link rel="stylesheet" href="Styles.css/base.css" />
-    <link rel="stylesheet" href="Styles.css/nav.css" />
+    <link rel="stylesheet" href="Styles.css/nav.css?v=20261122-navigation" />
     <link rel="stylesheet" href="Styles.css/hero.css" />
     <link rel="stylesheet" href="Styles.css/search.css" />
     <link rel="stylesheet" href="Styles.css/candidates.css" />
-    <link rel="stylesheet" href="Styles.css/quiz.css" />
+    <link rel="stylesheet" href="Styles.css/quiz.css?v=20261122-button-red-restored" />
     <link rel="stylesheet" href="Styles.css/detail.css" />
-    <link rel="stylesheet" href="Styles.css/themes.css" />
-    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="Styles.css/themes.css?v=20261122-navigation" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Civic Lens | Home</title>
     <link
@@ -32,7 +34,6 @@
         <details
           class="dropdown dropdown-end"
           id="nav-dropdown"
-          data-theme="dark"
         >
           <summary
             class="btn btn-ghost btn-circle"
@@ -117,6 +118,8 @@
           To Know
         </h2>
 
+        <p id="backend-status" class="backend-status" role="status">Connecting to the backend…</p>
+
         <button
           type="button"
           id="quiz-toggle-btn"
@@ -155,7 +158,7 @@
           <p id="search-help">
             New York State only. ZIP codes can cross voting districts.
           </p>
-          <button class="btn" type="submit" data-theme="dark">Search</button>
+          <button class="btn" type="submit">Search</button>
         </form>
         <p id="search-status" role="status">Loading preview candidates…</p>
 
@@ -171,8 +174,7 @@
             type="button"
             id="previous-candidates"
             class="btn btn-circle"
-            data-theme="dark"
-            aria-label="Previous candidates"
+              aria-label="Previous candidates"
             aria-controls="candidate-results"
             disabled
           >
@@ -182,8 +184,7 @@
             type="button"
             id="next-candidates"
             class="btn btn-circle"
-            data-theme="dark"
-            aria-label="Show more candidates"
+              aria-label="Show more candidates"
             aria-controls="candidate-results"
           >
             <span aria-hidden="true">→</span>
@@ -195,7 +196,7 @@
     <dialog
       id="candidate-detail"
       class="modal"
-      data-theme="dark"
+
       aria-labelledby="detail-name"
       aria-describedby="detail-notice"
     >

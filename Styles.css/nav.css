@@ -84,6 +84,6 @@
   background-color: #2b2b2b;
 }
 
-#main-nav .civic-menu a[aria-current="page"] {
-  border-left: 2px solid var(--civic-panel-accent);
+#main-nav .civic-menu a[aria-current] {
+  border-left: 0;
 }

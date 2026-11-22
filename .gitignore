@@ -1,1 +1,12 @@
+# Credentials and local environments
 .env
+.env.*
+!.env.example
+.venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.cache/
+.DS_Store
+*.log

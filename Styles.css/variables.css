@@ -1,7 +1,120 @@
+/* Light is the fallback. The head script sets data-theme before the first paint. */
 :root {
+  color-scheme: light;
+  --color-bg: #f7f8fa;
+  --color-text: #242b35;
+  --civic-accent: #b5222d;
+  --civic-panel-accent: #75808f;
+  --surface: #ffffff;
+  --surface-card: #ffffff;
+  --surface-muted: #eef1f5;
+  --surface-hover: #f1f4f7;
+  --surface-input: #ffffff;
+  --border: #c6ced8;
+  --border-soft: #dfe4eb;
+  --text-strong: #202733;
+  --text-secondary: #414d5e;
+  --text-muted: #566477;
+  --text-faint: #627084;
+  --error-text: #b5222d;
+  --selected-bg: #fbecef;
+  --selected-text: #76232c;
+  --top-match-bg: #fff1f2;
+  --top-match-border: #d6a6ad;
+  --link-color: #286177;
+  --nav-selected-bg: #245fb5;
+  --nav-selected-hover: #1e5099;
+  --nav-hover-bg: #e8f0fd;
+  --nav-hover-text: #234c85;
+  --close-text: #266047;
+  --close-bg: #e8f3ec;
+  --close-border: #b5d4c2;
+  --partial-text: #765219;
+  --partial-bg: #faf1df;
+  --partial-border: #ddc598;
+  --different-text: #8c3545;
+  --different-bg: #faeaf0;
+  --different-border: #dfb3c0;
+  --shadow: 0 8px 24px rgb(25 37 54 / 10%);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #111111;
+  --color-text: #ffffff;
+  --civic-accent: #dc2626;
+  --civic-panel-accent: #a3a3a3;
+  --surface: #161616;
+  --surface-card: #1b1c1f;
+  --surface-muted: #202020;
+  --surface-hover: #202020;
+  --surface-input: #1a1a1a;
+  --border: #3a3a3a;
+  --border-soft: #2e2e2e;
+  --text-strong: #f5f5f5;
+  --text-secondary: #c1c6cf;
+  --text-muted: #a1a5ad;
+  --text-faint: #a7afba;
+  --error-text: #fca5a5;
+  --selected-bg: #200909;
+  --selected-text: #ffffff;
+  --top-match-bg: #201719;
+  --top-match-border: #6d363a;
+  --link-color: #a8d0d7;
+  --nav-selected-bg: #285d9e;
+  --nav-selected-hover: #326cb5;
+  --nav-hover-bg: #21334b;
+  --nav-hover-text: #e0edff;
+  --close-text: #a9dfcd;
+  --close-bg: #23372f;
+  --close-border: #3f5b50;
+  --partial-text: #e3c996;
+  --partial-bg: #382f22;
+  --partial-border: #5e4d34;
+  --different-text: #e3afb2;
+  --different-bg: #38272c;
+  --different-border: #5f4048;
+  --shadow: 0 8px 24px rgb(0 0 0 / 40%);
+}
+
+/* CSS-only first-paint fallback when JavaScript is blocked or still loading. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
     --color-bg: #111111;
     --color-text: #ffffff;
     --civic-accent: #dc2626;
     --civic-panel-accent: #a3a3a3;
-
+    --surface: #161616;
+    --surface-card: #1b1c1f;
+    --surface-muted: #202020;
+    --surface-hover: #202020;
+    --surface-input: #1a1a1a;
+    --border: #3a3a3a;
+    --border-soft: #2e2e2e;
+    --text-strong: #f5f5f5;
+    --text-secondary: #c1c6cf;
+    --text-muted: #a1a5ad;
+    --text-faint: #a7afba;
+    --error-text: #fca5a5;
+    --selected-bg: #200909;
+    --selected-text: #ffffff;
+    --top-match-bg: #201719;
+    --top-match-border: #6d363a;
+    --link-color: #a8d0d7;
+    --nav-selected-bg: #285d9e;
+    --nav-selected-hover: #326cb5;
+    --nav-hover-bg: #21334b;
+    --nav-hover-text: #e0edff;
+    --close-text: #a9dfcd;
+    --close-bg: #23372f;
+    --close-border: #3f5b50;
+    --partial-text: #e3c996;
+    --partial-bg: #382f22;
+    --partial-border: #5e4d34;
+    --different-text: #e3afb2;
+    --different-bg: #38272c;
+    --different-border: #5f4048;
+    --shadow: 0 8px 24px rgb(0 0 0 / 40%);
+  }
 }

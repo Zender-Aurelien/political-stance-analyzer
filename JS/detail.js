@@ -1,3 +1,5 @@
+import { formatDistrict } from "./profile-format.js";
+
 let returnFocus;
 
 export function initDetails() {
@@ -14,10 +16,13 @@ export function openDetail(candidate, trigger) {
     dialog.querySelector(id).textContent = value;
   };
   returnFocus = trigger;
+  dialog.classList.remove("party-democrat", "party-republican", "party-independent");
+  const party = candidate.party?.toLowerCase() || "";
+  dialog.classList.add(party.includes("democrat") ? "party-democrat" : party.includes("republican") ? "party-republican" : "party-independent");
   setText("#detail-name", candidate.name);
   setText("#detail-party", candidate.party || "Party not verified");
   setText("#detail-office", candidate.office || "Not verified");
-  setText("#detail-district", candidate.district || "Not verified");
+  setText("#detail-district", formatDistrict(candidate.district));
   setText(
     "#detail-bio",
     candidate.bio ||
