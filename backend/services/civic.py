@@ -147,6 +147,7 @@ async def get_candidates_merged(zip_code: str) -> list[CandidateResponse]:
                 "isPreview": data.get("isPreview", True),
                 "dataSource": {"local": "sample", "live": "live", "live+sample": "live+sample"}[data["source"]],
                 "providerId": data.get("providerId"),
+                "providerUrl": data.get("providerUrl"),
             }))
         except Exception:
             logger.warning("civic: skipping malformed candidate record id=%s", data.get("id"))

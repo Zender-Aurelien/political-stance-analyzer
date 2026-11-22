@@ -6,6 +6,8 @@ from fastapi import APIRouter, HTTPException, Query, Response
 from backend.models.candidate import CandidateResponse
 from backend.services.civic import get_candidates, get_candidates_merged, get_profile_candidate, is_new_york_zip
 from backend.services.profiles import synchronize_profile
+from backend.models.evidence import SummaryRun
+from backend.services.evidence import get_run
 
 router = APIRouter(tags=["Candidates"])
 ZipQuery = Annotated[str | None, Query(pattern=r"^[0-9]{5}$")]
@@ -31,3 +33,12 @@ async def profile(candidate_id: str, response: Response, zip: ZipQuery = None):
         raise HTTPException(404, "Profile not found.")
     response.headers["Cache-Control"] = "no-store"
     return await synchronize_profile(candidate)
+
+
+@router.get("/candidates/{candidate_id}/profile/runs/{run_id}", response_model=SummaryRun)
+async def profile_run(candidate_id: str, run_id: str, response: Response):
+    run = await get_run(candidate_id, run_id)
+    if run is None:
+        raise HTTPException(404, "Source record not found.")
+    response.headers["Cache-Control"] = "no-store"
+    return run

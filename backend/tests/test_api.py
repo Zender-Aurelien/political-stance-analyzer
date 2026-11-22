@@ -123,6 +123,24 @@ def test_ai_outage_keeps_match_scores(client, monkeypatch):
     assert result["explanation_source"] == "rules"
 
 
+@pytest.mark.parametrize("generated,accepted", [("Compared two sample topics.", True), ("This person worked as a doctor.", False), ("Compared two sample topics. Vote for this person.", False), (None, False), ({"text": "malformed"}, False)])
+def test_ai_comparison_must_quote_the_computed_basis(client, monkeypatch, generated, accepted):
+    import httpx
+    for key in ("WATSONX_API_KEY", "WATSONX_PROJECT_ID", "WATSONX_MODEL_ID"):
+        monkeypatch.setenv(key, "test")
+    monkeypatch.setenv("WATSONX_URL", "https://us-south.ml.cloud.ibm.com")
+    monkeypatch.setenv("ENABLE_WATSONX", "true")
+    async def token(_):
+        return "test-token"
+    monkeypatch.setattr(watsonx, "get_token", token)
+    factory = httpx.AsyncClient
+    def respond(request):
+        return httpx.Response(200, json={"results": [{"generated_text": generated}]})
+    monkeypatch.setattr(watsonx.httpx, "AsyncClient", lambda **kwargs: factory(transport=httpx.MockTransport(respond), **kwargs))
+    text = asyncio.run(watsonx.explain_match({"housing": 2}, {"name": "Example", "positions": []}, "Compared two sample topics. Closer alignment: housing."))
+    assert bool(text) == accepted
+
+
 def test_static_files_do_not_expose_private_files(client):
     assert client.get("/").status_code == 200
     assert client.get("/JS/main.js").status_code == 200

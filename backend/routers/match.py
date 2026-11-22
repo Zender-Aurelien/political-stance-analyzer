@@ -26,10 +26,13 @@ async def match(payload: MatchRequest, response: Response):
         candidate = candidates[candidate_id]
         result = score_candidate(candidate, payload.answers, payload.zip)
         if result.match_pct is not None:
+            baseline = result.explanation
             explanation = await explain_match(payload.answers, candidate.model_dump(), result.explanation)
             if explanation:
                 result.explanation = explanation
                 result.explanation_source = "watsonx"
+                result.explanation_basis = baseline
+                result.explanation_checks = {"computed_text_only": True, "score_unchanged": True}
         return result
 
     results = await asyncio.gather(*(calculate(candidate_id) for candidate_id in payload.candidate_ids))

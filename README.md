@@ -97,6 +97,7 @@ Interactive API documentation: http://127.0.0.1:8000/docs
 | GET | `/api/candidates` | All sample profiles |
 | GET | `/api/candidates?zip=10027` | Optional live state office records plus sample ZIP matches |
 | GET | `/api/candidates/{id}/profile` | Dated background and legislative evidence; a ZIP query can resolve a live profile after restart |
+| GET | `/api/candidates/{id}/profile/runs/{run_id}` | Public summary citations, source versions and per-run validation results |
 | GET | `/api/quiz` | Reviewed quiz questions shared with the frontend |
 | POST | `/api/match` | Ranked scores and explanations |
 
@@ -113,6 +114,14 @@ Example match request:
 Unknown topics, invalid scores, duplicate candidate IDs, and malformed ZIPs return 422. Unknown candidates return 404. Non-New York ZIP searches return an empty list; non-New York ZIPs on match requests return 422. No matching user responses are logged or stored.
 
 ## Verification
+
+For the complete offline check on every change:
+
+```bash
+backend/.venv/bin/python scripts/check.py
+```
+
+This runs backend, frontend and evidence-lineage checks and writes an ignored JSON verification report. The GitHub Actions workflow runs the same checks on push/PR without live-service secrets. Automated profile summaries also pass runtime evidence checks and receive public run traces. See [evidence retrieval and maintenance architecture](docs/rag-architecture.md) for implemented boundaries and the remaining registry, refresh and monitoring work. No vector database or autonomous agent is required for this initial person-specific retrieval layer.
 
 ```bash
 backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt

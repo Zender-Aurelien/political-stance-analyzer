@@ -51,4 +51,6 @@ class MatchResult(BaseModel):
     shared_topics: list[str]
     explanation: str
     explanation_source: Literal["rules", "watsonx"] = "rules"
+    explanation_basis: str | None = None
+    explanation_checks: dict[str, bool] = Field(default_factory=dict)
     data_source: str = "sample"

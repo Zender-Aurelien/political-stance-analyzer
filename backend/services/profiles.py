@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+from time import monotonic
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
@@ -14,24 +15,13 @@ from backend.config import ROOT, watsonx_bios_enabled
 from backend.models.candidate import CandidateResponse
 from backend.services.cloudant import get_document, save_document
 from backend.services.watsonx import summarize_biography
+from backend.services.source_policy import official_url
+from backend.services.evidence import PROMPT_VERSION, index_excerpts, check_summary, record_run, verify_cached_summary, permitted_source
 
 logger = logging.getLogger(__name__)
 TTL_SECONDS = 6 * 60 * 60
-CACHE_PREFIX = "profile-evidence:v4:"
+CACHE_PREFIX = "profile-evidence:v5:"
 _MAX_HTML_BYTES = 1_500_000
-
-
-def official_url(url: str) -> bool:
-    """Only public government sites; callers cannot supply arbitrary fetch URLs."""
-    try:
-        parsed = urlsplit(url)
-        host = (parsed.hostname or "").lower()
-        return parsed.scheme == "https" and not parsed.username and not parsed.password and parsed.port in (None, 443) and (
-            host in {"www.nysenate.gov", "nysenate.gov", "nyassembly.gov", "www.nyassembly.gov", "assembly.state.ny.us", "www.assembly.state.ny.us", "governor.ny.gov", "ag.ny.gov", "www.nyc.gov", "nyc.gov"}
-            or host == "osc.ny.gov" or host.endswith((".house.gov", ".senate.gov", ".nyc.gov"))
-        )
-    except (ValueError, TypeError):
-        return False
 
 
 class BiographyHTML(HTMLParser):
@@ -185,6 +175,7 @@ async def _background(candidate: CandidateResponse) -> dict:
 
 
 async def _complete_background(candidate: CandidateResponse, background: dict) -> dict:
+    started = monotonic()
     facts = background.pop("_facts", [])
     if not background and candidate.dataSource in {"live", "live+sample"}:
         # An office overview is useful when an official site blocks biography access.
@@ -196,13 +187,31 @@ async def _complete_background(candidate: CandidateResponse, background: dict) -
             "bio": " ".join(facts), "biographyMode": "office_record", "biographyScope": "office",
             "biographySource": _biography_url(candidate),
         }
-    if facts and watsonx_bios_enabled():
+    source_kind = "office_record" if background.get("biographyScope") == "office" else "official_biography"
+    source_url = ((candidate.providerUrl if permitted_source(candidate.providerUrl or "", "office_record") else "https://openstates.org/") if source_kind == "office_record" else background.get("biographySource", ""))
+    # Reviewed human summaries stay explicitly dated and outside the AI pipeline.
+    if not background or background.get("biographyMode") == "reviewed_summary":
+        return background
+    excerpts = list(dict.fromkeys(facts[:8] + ([background["bio"]] if background.get("bio") else [])))
+    chunks = await index_excerpts(candidate.id, source_url, source_kind, excerpts)
+    attempt_checks = {}
+    attempted = bool(facts and chunks and watsonx_bios_enabled())
+    accepted_ai = False
+    if attempted:
         try:
-            summary = await asyncio.wait_for(summarize_biography(facts), timeout=8)
+            summary = await asyncio.wait_for(summarize_biography([c.excerpt for c in chunks[:8]]), timeout=8)
         except asyncio.TimeoutError:
             summary = ""
-        if summary:
+        attempt_checks, _ = check_summary(candidate.id, summary, chunks[:8])
+        if all(attempt_checks.values()):
             background = {**background, "bio": summary, "biographyMode": "watsonx_summary"}
+            accepted_ai = True
+    if chunks or attempted:
+        run = await record_run(candidate.id, background.get("bio", ""), chunks, mode=background.get("biographyMode", "unavailable"), model_id=os.getenv("WATSONX_MODEL_ID") if attempted else None, model_checks=attempt_checks, duration_ms=round((monotonic() - started) * 1000), fallback=attempted and not accepted_ai)
+        if run.outcome != "unavailable":
+            background.update(biographyRunId=run.runId, biographyTraceUrl=f"/api/candidates/{candidate.id}/profile/runs/{run.runId}", biographyCitations=[c.model_dump() for c in run.citations])
+        elif background.get("biographyMode") == "watsonx_summary":
+            return {}
     return background
 
 
@@ -240,8 +249,10 @@ async def synchronize_profile(candidate: CandidateResponse) -> CandidateResponse
     stored = await get_document(cache_id)
     now = datetime.now(timezone.utc)
     cache_ttl = TTL_SECONDS if stored and stored["fields"].get("profileStatus") == "synced" else 600
-    fingerprint = [candidate.name, candidate.office, candidate.district, candidate.party, watsonx_bios_enabled()]
+    fingerprint = [candidate.name, candidate.office, candidate.district, candidate.party, candidate.providerId, candidate.providerUrl, sorted(candidate.sources), watsonx_bios_enabled(), os.getenv("WATSONX_MODEL_ID") if watsonx_bios_enabled() else None, PROMPT_VERSION]
     if stored and stored.get("identity") != fingerprint:
+        stored = None
+    if stored and not await verify_cached_summary(candidate.id, stored["fields"]):
         stored = None
     if stored and now.timestamp() - stored.get("fetchedAt", 0) < cache_ttl:
         return CandidateResponse.model_validate({**candidate.model_dump(), **stored["fields"]})
