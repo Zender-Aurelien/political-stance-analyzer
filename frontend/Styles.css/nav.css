@@ -7,7 +7,7 @@
 
 #main-nav {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr auto auto auto;
   align-items: center;
   padding: 20px 32px 10px;
   font-size: 20px;
@@ -19,8 +19,14 @@
   height: 30px;
 }
 
-#main-nav .dropdown {
+#main-nav .theme-toggle-btn {
   grid-column: 3;
+  grid-row: 1;
+  color: var(--color-text);
+}
+
+#main-nav .dropdown {
+  grid-column: 4;
   grid-row: 1;
   justify-self: end;
 }

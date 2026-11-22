@@ -34,6 +34,24 @@
         <a class="brand" href="index.html">Civic Lens</a>
         <a class="nav-link" href="about.html">About Us</a>
 
+        <button
+          type="button"
+          class="btn btn-ghost btn-circle theme-toggle-btn"
+          data-theme-toggle
+          aria-label="Switch to dark mode"
+          title="Switch to dark mode"
+          onclick="window.__civicToggleTheme()"
+        >
+          <!-- Sun: shown in dark mode to switch back to light -->
+          <svg class="theme-icon-sun" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" hidden>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.71.71M6.34 17.66l-.71.71m12.73 0-.71-.71M6.34 6.34l-.71-.71M12 5a7 7 0 1 0 0 14A7 7 0 0 0 12 5z"/>
+          </svg>
+          <!-- Moon: shown in light mode to switch to dark -->
+          <svg class="theme-icon-moon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
+          </svg>
+        </button>
+
         <details
           class="dropdown dropdown-end"
           id="nav-dropdown"
