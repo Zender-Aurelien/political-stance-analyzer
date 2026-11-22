@@ -25,7 +25,7 @@ deployment is left to the operator.
 ---
 
 ### Sub-Task 9.1 — Fix Dockerfile COPY Paths
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 **Intent:**
 The `backend/Dockerfile` was written before the November 22 directory restructure.
@@ -57,7 +57,7 @@ be updated so `docker build` succeeds.
 ---
 
 ### Sub-Task 9.2 — Verify Docker Build and Run Locally
-**Status:** `[ ] pending`
+**Status:** `[ ] pending — Docker not available in this environment; run manually per deploy.md Step 2`
 
 **Intent:**
 Confirm the corrected image builds cleanly and the health endpoint responds before writing
@@ -85,7 +85,7 @@ deployment docs that depend on the container working correctly.
 ---
 
 ### Sub-Task 9.3 — Write backend/deploy.md
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 **Intent:**
 Create `backend/deploy.md` — a standalone step-by-step guide for deploying the Civic Lens
@@ -179,7 +179,7 @@ so a new operator can follow it without prior IBM Cloud experience.
 ---
 
 ### Sub-Task 9.4 — Extend backend/README.md with Docker Section
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 **Intent:**
 Add a "Local Docker test" section to the existing `backend/README.md` so a developer can

@@ -438,7 +438,7 @@ and POST answers for scoring.
 ---
 
 ### Sub-Task 9 — IBM Code Engine Deployment
-**Status:** `[ ] pending`
+**Status:** `[-] in progress — 9.1/9.3/9.4 done; 9.2 requires manual docker build (see deploy.md Step 2)`
 
 **Intent:**
 Document and configure the steps needed to build the Docker image and deploy the backend

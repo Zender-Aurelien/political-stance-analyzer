@@ -10,6 +10,20 @@ Use the root README for first-time installation. The same server serves the webs
 
 `backend/.env` is loaded relative to this file regardless of the working directory. `FRONTEND_ORIGIN` is a comma-separated list of allowed separate frontend origins. Credentials are disabled for CORS and no wildcard is required for the same-origin demo.
 
+## Local Docker test
+
+Build and run the image from the **repository root**:
+
+```bash
+docker build -f backend/Dockerfile -t civic-lens .
+docker run -p 8000:8000 --env-file backend/.env civic-lens
+```
+
+Then open `http://localhost:8000/health` to confirm the container is healthy. The
+`--env-file backend/.env` flag is optional; omit it to run with no credentials (sample
+data only, no IBM services). See `backend/deploy.md` for the full IBM Code Engine
+deployment guide.
+
 ## Cache
 
 `CACHE_PATH` defaults to `backend/.cache/public-data.sqlite3`. SQLite persists public quiz reference documents across restarts. The quiz cache ID includes a hash of the reviewed question data, so editing `data/quiz.json` invalidates old content. Quiz answers and match requests are not saved.
