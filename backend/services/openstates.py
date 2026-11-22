@@ -88,13 +88,14 @@ def _map_person(person: dict) -> dict:
     links = person.get("links") or []
     return {
         "id": _slug(person.get("name", "")),
+        "providerId": person.get("id"),
         "name": person.get("name", ""),
         "party": person.get("party", ""),
         "office": role.get("title") or {"upper": "State Senator", "lower": "State Assembly Member"}.get(role.get("org_classification"), "State Legislator"),
         "district": f"New York · District {role['district']}" if role.get("district") else "New York · Statewide",
         "photo_url": person.get("image") or None,
         "website": links[0].get("url") if links else None,
-        # No local positions data — watsonx or Cloudant will enrich these.
+        # Office records contain no policy stance; sourced evidence is loaded separately.
         "positions": [],
         "sources": [link["url"] for link in links if isinstance(link, dict) and link.get("url")],
         "source": "openstates",

@@ -7,7 +7,7 @@
     <script src="accessibility/accessibility.js?v=20261122-a11y2"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script type="module" src="JS/main.js?v=20261122-navigation"></script>
+    <script type="module" src="JS/main.js?v=20261122-profile-sync"></script>
     <link rel="stylesheet" href="Styles.css/reset.css" />
     <link rel="stylesheet" href="Styles.css/variables.css?v=20261122-navigation" />
     <link rel="stylesheet" href="Styles.css/base.css" />
@@ -15,8 +15,8 @@
     <link rel="stylesheet" href="Styles.css/hero.css" />
     <link rel="stylesheet" href="Styles.css/search.css" />
     <link rel="stylesheet" href="Styles.css/candidates.css" />
-    <link rel="stylesheet" href="Styles.css/quiz.css?v=20261122-button-red-restored" />
-    <link rel="stylesheet" href="Styles.css/detail.css" />
+    <link rel="stylesheet" href="Styles.css/quiz.css?v=20261122-centered-match" />
+    <link rel="stylesheet" href="Styles.css/detail.css?v=20261122-profile-sync" />
     <link rel="stylesheet" href="Styles.css/themes.css?v=20261122-navigation" />
     <link rel="stylesheet" href="accessibility/accessibility.css?v=20261122-a11y2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -241,12 +241,14 @@
             <dd id="detail-district"></dd>
           </div>
         </dl>
+        <p id="detail-sync-status" class="detail-sync-status" role="status"></p>
         <section class="detail-section">
           <h3>Work &amp; experience</h3>
           <p id="detail-bio"></p>
+          <p id="detail-bio-source" class="detail-source-note"></p>
         </section>
         <section class="detail-section">
-          <h3>Policy positions</h3>
+          <h3 id="detail-policy-heading">Policy positions</h3>
           <p id="detail-positions-empty"></p>
           <ul id="detail-positions"></ul>
         </section>

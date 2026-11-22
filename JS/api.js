@@ -72,3 +72,8 @@ export async function submitQuizAnswers(answers, candidateIds, zip) {
 }
 
 export async function getBackendStatus() { return request("/status"); }
+
+export async function getCandidateProfile(candidate) {
+  if (!candidate.profileUrl?.startsWith("/api/candidates/")) return candidate;
+  return request(candidate.profileUrl.slice(4));
+}

@@ -14,6 +14,7 @@ from backend.models.candidate import CandidateResponse
 from backend.models.quiz import QuizQuestion
 
 logger = logging.getLogger(__name__)
+_live_candidates: dict[str, CandidateResponse] = {}
 
 
 def is_new_york_zip(zip_code: str) -> bool:
@@ -78,8 +79,8 @@ async def get_candidates_merged(zip_code: str) -> list[CandidateResponse]:
       record is used as the base but the local record's positions, bio, summary,
       and sources are merged in (local editorial data takes precedence for content).
     - Candidates only in the local set are included as-is.
-    - Candidates only in Open States are included with empty positions (watsonx
-      or Cloudant enriches them in the candidates router).
+    - Candidates only in Open States have no inferred policy stances. Their
+      background and legislative evidence can be requested via the profile route.
     - data_source header hint: "live+sample" if Open States returned anything,
       otherwise "sample".
     """
@@ -145,10 +146,25 @@ async def get_candidates_merged(zip_code: str) -> list[CandidateResponse]:
                 "lastVerified": data.get("lastVerified"),
                 "isPreview": data.get("isPreview", True),
                 "dataSource": {"local": "sample", "live": "live", "live+sample": "live+sample"}[data["source"]],
+                "providerId": data.get("providerId"),
             }))
         except Exception:
             logger.warning("civic: skipping malformed candidate record id=%s", data.get("id"))
+    for candidate in candidates:
+        if candidate.dataSource != "sample":
+            _live_candidates[candidate.id] = candidate
     return candidates
+
+
+async def get_profile_candidate(candidate_id: str, zip_code: str | None = None) -> CandidateResponse | None:
+    if candidate_id in _live_candidates:
+        return _live_candidates[candidate_id]
+    local = next((c for c in get_candidates() if c.id == candidate_id), None)
+    if local:
+        return local
+    if zip_code and is_new_york_zip(zip_code):
+        return next((c for c in await get_candidates_merged(zip_code) if c.id == candidate_id), None)
+    return None
 
 
 def get_questions() -> list[QuizQuestion]:

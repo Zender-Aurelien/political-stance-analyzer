@@ -65,7 +65,7 @@ def test_live_lookup_and_fallback_have_accurate_sources(monkeypatch):
         records = response.json()
         assert records[0]["dataSource"] == "live"
         assert records[0]["positions"] == []
-        expected = {c.id: c.model_dump() for c in civic.get_candidates("10027")}
+        expected = {c.id: {**c.model_dump(), "profileUrl": f"/api/candidates/{c.id}/profile?zip=10027"} for c in civic.get_candidates("10027")}
         assert {c["id"]: c for c in records[1:]} == expected
 
         async def offline(_):

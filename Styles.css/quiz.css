@@ -671,6 +671,8 @@
 .candidate-match-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 5px;
   font-size: 0.75rem;
   font-weight: 700;

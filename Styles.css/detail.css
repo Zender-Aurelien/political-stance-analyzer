@@ -60,6 +60,11 @@
 .detail-section ul { padding-left: 20px; list-style: disc; }
 .detail-section a { text-decoration: underline; text-underline-offset: 3px; }
 .detail-verified { margin-top: 16px; }
+.detail-sync-status, .detail-source-note, .detail-evidence-meta { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+.detail-sync-status:empty, .detail-source-note:empty { display: none; }
+.detail-source-note { margin-top: 8px; }
+.detail-evidence { margin-bottom: 14px; }
+.detail-evidence-meta { display: block; margin-top: 3px; }
 
 @media (max-width: 480px) {
   .detail-header { flex-direction: column; align-items: flex-start; }
