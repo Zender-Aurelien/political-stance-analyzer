@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="Styles.css/hero.css" />
     <link rel="stylesheet" href="Styles.css/search.css" />
     <link rel="stylesheet" href="Styles.css/candidates.css" />
+    <link rel="stylesheet" href="Styles.css/quiz.css" />
     <link rel="stylesheet" href="Styles.css/detail.css" />
     <link rel="stylesheet" href="Styles.css/themes.css" />
     <meta charset="UTF-8" />
@@ -115,7 +116,28 @@
           Know What You Need <br />
           To Know
         </h2>
-        <h3 class="quiz-button">Begin Matching Quiz ></h3>
+
+        <button
+          type="button"
+          id="quiz-toggle-btn"
+          class="quiz-button"
+          aria-expanded="false"
+          aria-controls="quiz-container"
+        >Begin Matching Quiz ›</button>
+
+        <div
+          id="quiz-container"
+          aria-hidden="true"
+          hidden
+        >
+          <div class="quiz-progress-wrap">
+            <div class="quiz-progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Quiz progress">
+              <div id="quiz-progress-bar"></div>
+            </div>
+            <p id="quiz-progress-text" aria-live="polite"></p>
+          </div>
+          <div id="quiz-step"></div>
+        </div>
 
         <form class="search-bar" id="candidate-search-form">
           <label for="candidate-search"

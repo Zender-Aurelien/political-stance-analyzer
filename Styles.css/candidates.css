@@ -1,4 +1,4 @@
-/* Keep cards in one ow; the container scrolls instead of the pages. */
+/* Horizontal scrolling row — one row of cards, scroll sideways */
 .candidate-grid {
   display: grid;
   grid-auto-flow: column;
@@ -8,6 +8,8 @@
   overflow-x: auto;
   scroll-snap-type: x proximity;
   padding-bottom: 12px;
+  /* Stretch all cards to the same height */
+  align-items: stretch;
 }
 
 .candidate-grid > .candidate-card {
@@ -27,29 +29,39 @@
   }
 }
 
-/* Party color is always next to a writteen party label. */
+/* ── Card shell ─────────────────────────────────────────────────────────────── */
 .candidate-card {
   --party-color: #8b8b8b;
   overflow: hidden;
+  /* Make the card itself a flex column so card-body can fill it */
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-.party-democrat {
-  --party-color: #3b82f6;
-}
-.party-republican {
-  --party-color: #ef4444;
-}
-.party-independent {
-  --party-color: #8b8b8b;
-}
+.party-democrat   { --party-color: #3b82f6; }
+.party-republican { --party-color: #ef4444; }
+.party-independent{ --party-color: #8b8b8b; }
 
 .party-stripe {
   height: 5px;
   background-color: var(--party-color);
+  flex-shrink: 0;
 }
 
+/* ── Card body — override DaisyUI's gap so we control spacing precisely ─────── */
+.candidate-card .card-body {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  gap: 0 !important;
+  padding: 20px !important;
+}
+
+/* ── Avatar — fixed size, always centred ───────────────────────────────────── */
 .candidate-avatar {
   align-self: center;
+  flex-shrink: 0;
+  margin-bottom: 14px;
 }
 
 .candidate-avatar img {
@@ -57,51 +69,107 @@
   object-position: center 20%;
 }
 
+/* ── Name — FIXED height: exactly 2 lines, clamp overflow ──────────────────── */
+/* This is the key fix: every card's name block is the same height no matter
+   how short or long the name is, so all subsequent elements align perfectly. */
 .candidate-name {
-  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  /* Reserve space for exactly 2 lines */
+  height: calc(1rem * 1.4 * 2);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   text-align: center;
+  margin: 0 0 6px;
+  flex-shrink: 0;
 }
 
+/* ── Party label — fixed single line ───────────────────────────────────────── */
 .candidate-party {
-  text-align: center;
+  font-size: 0.8rem;
   font-weight: 400;
+  text-align: center;
+  flex-shrink: 0;
+  margin: 0 0 12px;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* ── Facts (Office / District) — fixed height for 2 rows ───────────────────── */
 .candidate-facts {
   display: grid;
-  gap: 12px;
-  margin: 12px 0;
+  gap: 4px;
+  margin: 0 0 12px;
   text-align: left;
+  flex-shrink: 0;
+}
+
+.candidate-facts > div {
+  /* Clamp each fact row to 2 lines total (label + value) */
+  min-height: 2.6em;
 }
 
 .candidate-facts dt {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 400;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
 }
 
 .candidate-facts dd {
   margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  /* Clamp district/office to 2 lines */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
+/* ── Summary — grows to fill space, button always at bottom ─────────────────── */
 .candidate-summary {
-  text-align: left;
+  flex: 1;
+  margin-bottom: 10px;
+  overflow: hidden;
 }
 
-.candidate-summary p,
+.candidate-summary p {
+  font-weight: 400;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  margin: 0;
+}
+
+/* ── Source link ────────────────────────────────────────────────────────────── */
 .candidate-source {
   font-weight: 400;
   font-size: 0.875rem;
-}
-
-.candidate-source {
   text-decoration: underline;
+  flex-shrink: 0;
+  display: block;
+  margin-bottom: 8px;
 }
 
+/* ── Actions — pinned to bottom ─────────────────────────────────────────────── */
 .candidate-card .card-actions {
   margin-top: auto;
-  padding-top: 16px;
+  padding-top: 12px;
+  flex-shrink: 0;
 }
 
+/* ── Scroll controls ────────────────────────────────────────────────────────── */
 .candidate-controls {
   gap: 12px;
   display: flex;

@@ -1,4 +1,30 @@
 import { openDetail } from "./detail.js";
+import { get } from "./storage.js";
+
+const KEY_RESULT = "cl_quiz_result";
+
+/**
+ * Listen for quiz-results events (fired by quiz.js) and stamp match badges
+ * onto any already-rendered candidate cards.
+ */
+document.addEventListener("quiz-results", (event) => {
+  const resultMap = event.detail; // { candidateId: pct }
+  document.querySelectorAll(".candidate-card[data-candidate-id]").forEach(card => {
+    const pct = resultMap[card.dataset.candidateId];
+    if (pct === undefined) return;
+
+    // Remove any existing badge so re-runs don't double-up
+    card.querySelector(".candidate-match-badge")?.remove();
+
+    const badge = document.createElement("span");
+    badge.className = "candidate-match-badge";
+    badge.textContent = `${pct}% match`;
+
+    // Insert before the "View Details" actions block
+    const actions = card.querySelector(".card-actions");
+    if (actions) actions.before(badge);
+  });
+});
 
 export function initCandidateScrolling() {
   const row = document.querySelector("#candidate-results");
@@ -54,13 +80,13 @@ export function renderCards(candidates) {
         <div class="avatar candidate-avatar"><div class="w-20 rounded-full">
           <img loading="lazy" width="80" height="80">
         </div></div>
-        <h3 class="card-title candidate-name"></h3>
+        <h3 class="candidate-name"></h3>
         <p class="candidate-party"></p>
         <dl class="candidate-facts">
           <div><dt>Office</dt><dd data-field="office"></dd></div>
           <div><dt>Area / district</dt><dd data-field="district"></dd></div>
         </dl>
-        <div class="candidate-summary"><h4>Work &amp; experience</h4><p></p></div>
+        <div class="candidate-summary"><p></p></div>
         <div class="card-actions"><button type="button" class="btn w-full">View Details</button></div>
       </div>`;
     const image = card.querySelector("img");
@@ -100,4 +126,18 @@ export function renderCards(candidates) {
   }
   row.scrollLeft = 0;
   row.dispatchEvent(new Event("candidates-rendered"));
+
+  // If quiz results already exist in storage, stamp badges immediately
+  const savedResults = get(KEY_RESULT);
+  if (savedResults) {
+    row.querySelectorAll(".candidate-card[data-candidate-id]").forEach(card => {
+      const pct = savedResults[card.dataset.candidateId];
+      if (pct === undefined) return;
+      card.querySelector(".candidate-match-badge")?.remove();
+      const badge = document.createElement("span");
+      badge.className = "candidate-match-badge";
+      badge.textContent = `${pct}% match`;
+      card.querySelector(".card-actions")?.before(badge);
+    });
+  }
 }

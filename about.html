@@ -19,6 +19,8 @@
     <script type="module" src="JS/about.js"></script>
   </head>
   <body>
+
+    <!-- ── NAV ───────────────────────────────────────────────────────────── -->
     <header>
       <nav id="main-nav" aria-label="Main navigation">
         <a class="brand" href="index.html">Civic Lens</a>
@@ -66,16 +68,139 @@
 
       <div class="accent-strip" aria-hidden="true"></div>
     </header>
-    <main class="about-page" aria-label="About Civic Lens">
-      <p class="about-description">
-        Civic Lens helps New Yorkers learn about political candidates, explore
-        their experience, and find sources to better understand their choices.
-        This version uses sample profiles stored in a local data file, with
-        links to official government and election websites for further research.
-        The profiles are previews, not a verified election lineup. Live
-        candidate data and ZIP-based district lookup are still being developed.
-      </p>
+
+    <main>
+
+      <!-- ── HERO ──────────────────────────────────────────────────────────── -->
+      <section class="about-hero" aria-label="About Civic Lens">
+        <img
+          class="about-hero-img"
+          src="assets/images/AdobeStock_205177923.webp"
+          alt="New York City Hall"
+          decoding="async"
+        />
+        <div class="about-hero-overlay" aria-hidden="true"></div>
+        <div class="about-hero-copy">
+          <p class="about-eyebrow">Civic Lens</p>
+          <h1 class="about-hero-title">Know your representatives.<br>Know your choices.</h1>
+          <p class="about-hero-sub">A nonpartisan tool for New Yorkers who want to understand where their elected officials stand and whether those positions align with their own values.</p>
+        </div>
+      </section>
+
+      <!-- ── MISSION ───────────────────────────────────────────────────────── -->
+      <section class="about-section about-split" aria-labelledby="mission-heading">
+        <div class="about-split-text">
+          <p class="about-section-eyebrow">Our Mission</p>
+          <h2 id="mission-heading">Closing the gap between voters and their government</h2>
+          <p>
+            Most New Yorkers can name their mayor or governor. Far fewer know their state assemblymember, their city council rep, or what any of them actually stand for on the issues that affect daily life.
+          </p>
+          <p>
+            Civic Lens exists to close that gap. We surface candidate profiles, policy positions, and verifiable sources so that anyone, regardless of political background, can make a more informed choice at the ballot box.
+          </p>
+          <p>
+            We don't tell you who to vote for. We give you the information to decide for yourself.
+          </p>
+        </div>
+        <div class="about-split-media">
+          <img
+            src="assets/images/860x394.jpg"
+            alt="Two officials in conversation while walking"
+            loading="lazy"
+          />
+          <p class="about-img-caption">New York officials in action. Civic Lens profiles federal, state, and local representatives.</p>
+        </div>
+      </section>
+
+      <!-- ── HOW IT WORKS ──────────────────────────────────────────────────── -->
+      <section class="about-section about-how" aria-labelledby="how-heading">
+        <p class="about-section-eyebrow">How It Works</p>
+        <h2 id="how-heading">Three steps to your match</h2>
+        <ol class="about-steps">
+          <li class="about-step">
+            <span class="about-step-number" aria-hidden="true">01</span>
+            <div>
+              <h3>Search your area</h3>
+              <p>Enter your ZIP code or a candidate's name. Civic Lens surfaces the elected officials and candidates active in your district, from U.S. Senate down to your local assembly seat.</p>
+            </div>
+          </li>
+          <li class="about-step">
+            <span class="about-step-number" aria-hidden="true">02</span>
+            <div>
+              <h3>Take the values quiz</h3>
+              <p>Answer a short set of questions about the issues that matter to you: housing, healthcare, climate, taxes, and more. Every question is framed neutrally with context on both sides of the issue. All questions are optional.</p>
+            </div>
+          </li>
+          <li class="about-step">
+            <span class="about-step-number" aria-hidden="true">03</span>
+            <div>
+              <h3>See your results</h3>
+              <p>Civic Lens calculates a match percentage for each candidate based on how closely their documented positions align with your answers. You'll also see which candidates represent your specific district.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ── CIVIC ENGAGEMENT ──────────────────────────────────────────────── -->
+      <section class="about-section about-fullbleed" aria-labelledby="engagement-heading">
+        <div class="about-fullbleed-inner">
+          <img
+            class="about-fullbleed-img"
+            src="assets/images/download (6).jpg"
+            alt="New Yorkers marching at a public demonstration in Manhattan"
+            loading="lazy"
+          />
+          <div class="about-fullbleed-overlay" aria-hidden="true"></div>
+          <div class="about-fullbleed-copy">
+            <p class="about-section-eyebrow about-eyebrow-light">Civic Participation</p>
+            <h2 id="engagement-heading">New Yorkers show up</h2>
+            <p>From city council hearings to statewide marches, New Yorkers have always been engaged. Civic Lens is built for that energy, giving residents the tools to channel it into informed political participation.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── DATA & PRIVACY ────────────────────────────────────────────────── -->
+      <section class="about-section about-split about-split-reverse" aria-labelledby="data-heading">
+        <div class="about-split-text">
+          <p class="about-section-eyebrow">Data &amp; Sources</p>
+          <h2 id="data-heading">Where the data comes from</h2>
+          <p>
+            Candidate profiles are drawn from official government sources including the U.S. House Clerk, Senate records, the New York State Board of Elections, and official campaign and government websites. Each profile links to its source directly.
+          </p>
+          <p>
+            Profiles marked <em>"Preview"</em> are layout samples that may not reflect a current election lineup and have not been fully verified. We note verification dates where available.
+          </p>
+          <h3 class="about-subheading">Your privacy</h3>
+          <p>
+            Civic Lens stores nothing on a server. Your quiz answers, ZIP code, and match results live only in your browser's <code>localStorage</code>. No account is required. No data is ever transmitted or sold.
+          </p>
+          <p>
+            Clearing your browser data removes all stored information instantly.
+          </p>
+        </div>
+        <div class="about-split-media">
+          <img
+            src="assets/images/NYC-DSA-proud-socialist.webp"
+            alt="Elected officials speaking at a press conference in New York"
+            loading="lazy"
+          />
+          <p class="about-img-caption">Elected representatives address constituents at a public press conference. Civic Lens links directly to official government profiles and verified sources.</p>
+        </div>
+      </section>
+
+      <!-- ── DISCLAIMER ────────────────────────────────────────────────────── -->
+      <section class="about-section about-disclaimer" aria-label="Disclaimer">
+        <p>
+          Civic Lens is an independent civic technology project built for the IBM SkillsBuild competition. It is not affiliated with, endorsed by, or funded by any political candidate, party, or government agency. Match percentages are algorithmic estimates based on publicly available information and user responses and are not political endorsements. Always consult official sources before making voting decisions.
+        </p>
+      </section>
+
     </main>
-    <footer class="about-footer"><p>&copy; Civic Lens</p></footer>
+
+    <footer class="about-footer">
+      <p>&copy; Civic Lens &nbsp;&middot;&nbsp; An IBM SkillsBuild Project</p>
+      <a href="index.html">← Back to home</a>
+    </footer>
+
   </body>
 </html>

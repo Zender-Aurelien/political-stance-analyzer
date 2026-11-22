@@ -13,6 +13,13 @@ export async function getCandidates() {
   return candidateData;
 }
 
+/** Synchronous read of the cache — returns null if not yet loaded. */
+export function getCandidatesSync() {
+  return candidateData ?? null;
+}
+
+
+
 export async function getCandidatesByName(query) {
   const candidates = await getCandidates();
   const terms = query.trim().toLocaleLowerCase().split(/\s+/);
