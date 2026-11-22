@@ -13,7 +13,7 @@
   font-size: 20px;
 }
 
-.dropdown svg {
+.dropdown > summary svg {
   display: block;
   width: 30px;
   height: 30px;
@@ -23,6 +23,19 @@
   grid-column: 3;
   grid-row: 1;
   color: var(--color-text);
+  background: transparent;
+  border: none;
+}
+
+#main-nav .theme-toggle-btn svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+#main-nav .theme-toggle-btn svg[hidden] {
+  display: none !important;
 }
 
 #main-nav .dropdown {
