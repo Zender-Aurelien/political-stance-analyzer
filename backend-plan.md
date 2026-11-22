@@ -12,7 +12,8 @@ graceful fallback when the backend is unreachable.
 - Hosted on IBM Code Engine (containerized)
 - IBM Cloudant — NoSQL document store for candidate stance data and cached quiz sets
 - IBM watsonx.ai — LLM for stance summarization, quiz question generation, and match explanations
-- Google Civic Information API — resolves ZIP codes to actual elected officials
+- Open States API — resolves ZIP codes to NY state-level elected officials (state senators and assembly members)
+- `data/candidates.json` — enrichment and fallback for federal and local officials not covered by Open States
 
 **New backend lives in a `backend/` directory at the repo root.**
 
@@ -26,20 +27,23 @@ Browser (index.html + JS modules)
         ▼
    api.js  ──── primary ──▶  FastAPI backend (IBM Code Engine)
         │                            │
-        └── fallback ──▶             ├── Google Civic Information API
-   data/candidates.json              ├── IBM watsonx.ai
+        └── fallback ──▶             ├── Open States API  (NY state reps by ZIP)
+   data/candidates.json              ├── data/candidates.json  (federal + local enrichment/fallback)
+                                     ├── IBM watsonx.ai
                                      └── IBM Cloudant
 ```
 
 **Request flow:**
 1. User enters ZIP → `api.js` calls `GET /api/candidates?zip=…`
-2. Backend queries Google Civic API for elected officials in that ZIP
-3. Backend checks Cloudant for cached stance documents; on miss, calls watsonx.ai to
+2. Backend queries Open States API for NY state-level officials in that ZIP (state senate + assembly)
+3. Backend merges results with any matching records from `data/candidates.json` (federal and local
+   officials whose `zips` array includes the given ZIP)
+4. Backend checks Cloudant for cached stance documents; on miss, calls watsonx.ai to
    summarize stances from public records, then caches the result in Cloudant
-4. Enriched candidate records returned to frontend
-5. Frontend calls `GET /api/quiz?zip=…` → backend uses watsonx.ai to generate
+5. Enriched candidate records returned to frontend
+6. Frontend calls `GET /api/quiz?zip=…` → backend uses watsonx.ai to generate
    district-relevant quiz questions
-6. User submits answers → frontend POSTs to `POST /api/match` →
+7. User submits answers → frontend POSTs to `POST /api/match` →
    backend uses watsonx.ai to compute match percentages and produce plain-English
    explanations per politician
 
@@ -60,7 +64,8 @@ backend/
 │   └── match.py           # POST /api/match
 │
 ├── services/
-│   ├── civic.py           # Google Civic Information API client
+│   ├── openstates.py      # Open States API client (NY state reps by ZIP)
+│   ├── candidates_local.py  # Local data/candidates.json lookup (federal + local enrichment/fallback)
 │   ├── watsonx.py         # IBM watsonx.ai client (stance analysis, quiz gen, match explain)
 │   └── cloudant.py        # IBM Cloudant read/write helpers
 │
@@ -104,7 +109,7 @@ and return a health-check response before any real logic is wired up.
 5. Write `Dockerfile` — `python:3.11-slim` base, copy source, install requirements, expose port,
    CMD uvicorn
 6. Write `.env.example` with keys:
-   - `GOOGLE_CIVIC_API_KEY`
+   - `OPEN_STATES_API_KEY`
    - `WATSONX_API_KEY`, `WATSONX_PROJECT_ID`, `WATSONX_URL`
    - `CLOUDANT_URL`, `CLOUDANT_APIKEY`, `CLOUDANT_DB_NAME`
    - `FRONTEND_ORIGIN` (for CORS)
@@ -149,37 +154,70 @@ never the Cloudant SDK directly.
 
 ---
 
-### Sub-Task 3 — Google Civic Information API Service
+### Sub-Task 3 — Open States API Service + Local Candidate Lookup
 **Status:** `[ ] pending`
 
 **Intent:**
-Build `services/civic.py` — a thin async client for the Google Civic Information API's
-`representativeInfoByAddress` endpoint. Given a ZIP code it returns a structured list of
-elected officials scoped to New York.
+Replace the defunct Google Civic Information API with two complementary lookup services:
+
+1. **`services/openstates.py`** — a thin async client for the Open States API. Given a ZIP code
+   it returns NY state-level elected officials (NY State Senate and NY State Assembly members)
+   who represent that ZIP.
+
+2. **`services/candidates_local.py`** — a local lookup service that reads `data/candidates.json`
+   (bundled with the repo) and returns any candidate whose `zips` array includes the given ZIP.
+   This covers federal officials (U.S. House, U.S. Senate) and NYC/local officials not served
+   by Open States.
+
+Together these two services replace the single Civic API call. `routers/candidates.py`
+calls both and merges the results, deduplicating by candidate ID.
 
 **Expected Outcomes:**
-- `get_representatives_by_zip(zip_code)` returns a list of dicts, each with:
-  `{ id, name, party, office, district, photo_url, urls, channels }`
-- Results are filtered to New York offices only (state + local + federal representing NY)
-- If the API key is missing or the call fails, returns an empty list (no crash)
-- If the ZIP is not in New York, returns an empty list with a flag `{"ny_only": true}`
+- `openstates.get_representatives_by_zip(zip_code)` returns a list of dicts, each with:
+  `{ id, name, party, office, district, photo_url, website }`
+  sourced from the Open States API, scoped to NY state legislators only
+- `candidates_local.get_candidates_by_zip(zip_code)` returns a list of the same dict shape,
+  sourced from `data/candidates.json` filtered by the `zips` field
+- Both functions return an empty list on failure — no crash
+- If the Open States API key is missing, `openstates.py` logs a warning and returns `[]`,
+  leaving `candidates_local.py` to serve what it can
+- Deduplication: if the same politician appears in both sources (matched by name slug),
+  the Open States record is preferred (fresher) but the local record's `positions` data is merged in
 
 **Todo List:**
-1. Use `httpx.AsyncClient` to call:
-   `https://civicinfo.googleapis.com/civicinfo/v2/representatives`
-   with params `address={zip}` and `key={GOOGLE_CIVIC_API_KEY}`
-2. Parse the response — iterate `offices` and `officials` arrays, join them by index
-3. Map each official to the internal dict shape listed above
-4. Filter to only offices whose `levels` include `country`, `administrativeArea1`
-   (state), or `administrativeArea2` (local) AND whose `roles` or division URI
-   contains `ny` or `new_york`
-5. Handle HTTP errors and missing fields with safe `.get()` defaults
+1. Register for a free Open States API key at https://openstates.org/api/register/
+2. Implement `services/openstates.py`:
+   a. Use `httpx.AsyncClient` to call `https://v3.openstates.org/people.geo`
+      with params `lat={lat}&lng={lng}&apikey={OPEN_STATES_API_KEY}`
+   b. Convert the ZIP code to lat/lng using the `pgeocode` library (add to `requirements.txt`)
+      or the free `zippopotam.us` REST API (no key needed)
+   c. Filter results to `jurisdiction.name` matching `New York` to stay NY-only
+   d. Map each result to `{ id, name, party, office, district, photo_url, website }`:
+      - `id`: URL-safe slug of the name (e.g. `kirsten-gillibrand`)
+      - `office`: `official.current_role.title` (e.g. `"State Senator"`, `"State Representative"`)
+      - `district`: `official.current_role.district`
+      - `party`: `official.party`
+      - `photo_url`: `official.image` (may be `null`)
+      - `website`: first entry of `official.links` list (may be `null`)
+   e. Handle HTTP errors and missing fields with safe `.get()` defaults
+3. Implement `services/candidates_local.py`:
+   a. Load `data/candidates.json` from the repo root on first call (lazy-load, cached in memory)
+   b. Implement `get_candidates_by_zip(zip_code)` — filter by `candidate["zips"]` containing the ZIP
+   c. Map each matching record to the same internal dict shape (using `positions` from JSON directly)
+   d. Return `[]` if the file cannot be loaded (log the error)
+4. Add `OPEN_STATES_API_KEY` to `backend/.env.example`
+5. Add `pgeocode` (or document the `zippopotam.us` approach) to `requirements.txt`
 
 **Relevant Context:**
-- Google Civic API docs: https://developers.google.com/civic-information/docs/v2
-- `representativeInfoByAddress` returns `{ offices: [...], officials: [...] }` —
-  each office has an `officialIndices` array pointing into the `officials` list
-- Candidate `id` should be a URL-safe slug of the name (e.g. `alexandria-ocasio-cortez`)
+- Open States API v3 docs: https://docs.openstates.org/api-v3/
+- `people.geo` endpoint accepts `lat` + `lng` and returns legislators for that point
+- `data/candidates.json` is at the repo root (one level above `backend/`); load with
+  `Path(__file__).parent.parent / "data" / "candidates.json"`
+- Candidate `id` slug pattern: lowercase name, spaces → hyphens, strip punctuation
+  (e.g. `"Alexandria Ocasio-Cortez"` → `"alexandria-ocasio-cortez"`)
+- ZIP → lat/lng via `zippopotam.us`: `GET https://api.zippopotam.us/us/{zip}` returns
+  `{ places: [{ latitude, longitude }] }` — no key required, add to the httpx calls
+  already being made
 
 ---
 
@@ -252,7 +290,11 @@ stance analysis and returns a fully enriched candidate list.
 1. Add a Pydantic model `CandidateResponse` in `models/candidate.py` matching the shape above
 2. Write the route in `routers/candidates.py`:
    - Validate ZIP with a regex pattern on the query param
-   - Call `civic.get_representatives_by_zip(zip)`; return 204 if empty
+   - Call both `openstates.get_representatives_by_zip(zip)` and
+     `candidates_local.get_candidates_by_zip(zip)` concurrently via `asyncio.gather()`
+   - Merge and deduplicate the two result lists (prefer Open States record, merge in
+     local `positions` data if the same candidate appears in both)
+   - Return 204 if the merged list is empty
    - For each official, check Cloudant for a cached stance doc (`stance:{id}`)
    - On cache miss, call `watsonx.analyze_stances(name, office, district)` and
      save result to Cloudant
@@ -262,8 +304,10 @@ stance analysis and returns a fully enriched candidate list.
 **Relevant Context:**
 - Watsonx stance calls can run concurrently — use `asyncio.gather()` for cache misses
   across multiple officials to keep latency manageable
-- Photo URL comes from Google Civic API (`officials[n].photoUrl`) — may be absent; use
-  `null` and let the frontend fall back to a placeholder
+- Photo URL comes from Open States (`official.image`) or is `null` for local-JSON records
+  without a photo — use `null` and let the frontend fall back to a placeholder
+- Local `data/candidates.json` records already have `positions` populated; skip the
+  watsonx stance call for those candidates if positions are present (treat as a cache hit)
 
 ---
 
@@ -286,7 +330,8 @@ generated quiz questions tailored to the politicians serving that area.
 1. Add Pydantic models `QuizQuestion` and `QuizOption` in `models/quiz.py`
 2. Write the route in `routers/quiz.py`:
    - Validate ZIP
-   - Call `civic.get_representatives_by_zip(zip)` to get the district key
+   - Call `candidates_local.get_candidates_by_zip(zip)` and/or
+     `openstates.get_representatives_by_zip(zip)` to identify the district key
    - Check Cloudant for `quiz:{district-key}`; return cached questions if found
    - On cache miss, fetch candidate stance summaries from Cloudant (or the candidates
      endpoint logic), then call `watsonx.generate_quiz_questions(candidates)`
@@ -409,11 +454,13 @@ to IBM Code Engine so the team can run the full stack from the cloud.
 
 | Decision | Choice |
 |---|---|
-| Backend framework | FastAPI (async, good for concurrent watsonx + Civic API calls) |
+| Backend framework | FastAPI (async, good for concurrent watsonx + Open States calls) |
 | Hosting | IBM Code Engine (containerized) |
 | Database | IBM Cloudant (NoSQL, fully on IBM Cloud) |
 | AI | IBM watsonx.ai with ibm/granite-13b-instruct-v2 (configurable) |
-| Politician lookup | Google Civic Information API by ZIP |
+| State-level politician lookup | Open States API v3 by ZIP (via lat/lng geocoding) |
+| Federal + local politician lookup | data/candidates.json filtered by zips field |
+| ZIP geocoding | zippopotam.us free REST API (no key required) |
 | Cache strategy | Cloudant documents, no TTL (competition scope) |
 | Frontend fallback | data/candidates.json if backend unreachable |
 | Secrets | Environment variables only, never committed |
