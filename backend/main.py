@@ -3,20 +3,27 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import Response
 
 from backend.config import ROOT, cloudant_configured, openstates_configured, watsonx_enabled
+from backend.routers import candidates, match, quiz
+from backend.services.civic import get_candidates, get_questions
+
+
+class _Utf8JsonResponse(JSONResponse):
+    """JSONResponse with an explicit charset=utf-8 in Content-Type.
+
+    FastAPI's default JSONResponse omits the charset, which causes Firefox on
+    Windows to fall back to the system encoding (cp1252), breaking multi-byte
+    UTF-8 characters like em-dashes and accented letters in API responses.
+    """
+    media_type = "application/json; charset=utf-8"
 
 
 class _Utf8StaticFiles(StaticFiles):
-    """StaticFiles that appends charset=utf-8 to text/* and application/json responses.
-
-    Starlette's StaticFiles guesses Content-Type from the file extension but never
-    appends a charset, so browsers may misinterpret raw UTF-8 bytes in .json and .js
-    files as latin-1 (the RFC 2616 default for text/* without an explicit charset).
-    """
+    """StaticFiles that appends charset=utf-8 to text/* and application/json responses."""
 
     _FORCE_UTF8 = {"application/json", "application/javascript",
                    "text/html", "text/css", "text/plain", "text/javascript"}
@@ -28,10 +35,14 @@ class _Utf8StaticFiles(StaticFiles):
         if mime in self._FORCE_UTF8 and "charset" not in ct:
             response.headers["content-type"] = f"{mime}; charset=utf-8"
         return response
-from backend.routers import candidates, match, quiz
-from backend.services.civic import get_candidates, get_questions
 
-app = FastAPI(title="Civic Lens API", version="1.0.0", description="Values matching demo using labeled sample New York profiles.")
+
+app = FastAPI(
+    title="Civic Lens API",
+    version="1.0.0",
+    description="Values matching demo using labeled sample New York profiles.",
+    default_response_class=_Utf8JsonResponse,
+)
 origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGIN", "http://localhost:5500,http://127.0.0.1:5500").split(",") if origin.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False,
                    allow_methods=["GET", "POST"], allow_headers=["Content-Type"])

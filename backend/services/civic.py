@@ -22,7 +22,7 @@ def is_new_york_zip(zip_code: str) -> bool:
 
 
 def _load_local_records() -> list[dict]:
-    return json.loads((ROOT / "data" / "candidates.json").read_text())
+    return json.loads((ROOT / "data" / "candidates.json").read_text(encoding="utf-8"))
 
 
 def get_candidates(zip_code: str | None = None) -> list[CandidateResponse]:
@@ -152,7 +152,7 @@ async def get_candidates_merged(zip_code: str) -> list[CandidateResponse]:
 
 
 def get_questions() -> list[QuizQuestion]:
-    records = json.loads((ROOT / "data" / "quiz.json").read_text())
+    records = json.loads((ROOT / "data" / "quiz.json").read_text(encoding="utf-8"))
     return [QuizQuestion.model_validate(record) for record in records]
 
 
