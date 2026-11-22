@@ -81,14 +81,16 @@ def status():
 @app.get("/", include_in_schema=False)
 @app.get("/index.html", include_in_schema=False)
 def home():
-    return FileResponse(ROOT / "index.html")
+    return FileResponse(ROOT / "frontend" / "index.html")
 
 
 @app.get("/about.html", include_in_schema=False)
 def about():
-    return FileResponse(ROOT / "about.html")
+    return FileResponse(ROOT / "frontend" / "about.html")
 
 
 # Mount only public assets. Never expose .env, .git, backend source, or cache.
-for directory in ("JS", "Styles.css", "accessibility", "assets", "data"):
-    app.mount("/" + directory, _Utf8StaticFiles(directory=ROOT / directory), name=directory)
+for directory in ("JS", "Styles.css", "accessibility", "assets"):
+    app.mount("/" + directory, _Utf8StaticFiles(directory=ROOT / "frontend" / directory), name=directory)
+# data/ lives at the repo root (shared between frontend and backend).
+app.mount("/data", _Utf8StaticFiles(directory=ROOT / "data"), name="data")

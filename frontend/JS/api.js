@@ -13,7 +13,7 @@ async function request(path, options = {}) {
 }
 
 async function localData(file) {
-  const response = await fetch(new URL(`../data/${file}`, import.meta.url));
+  const response = await fetch(new URL(`../../data/${file}`, import.meta.url));
   if (!response.ok) throw new Error("Local reference data could not be loaded.");
   const data = await response.json();
   if (!Array.isArray(data)) throw new Error("Reference data must be a list.");
