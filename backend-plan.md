@@ -379,74 +379,61 @@ because it requires coordinating new topic keys with `data/quiz.json`, `scoring.
 ---
 
 ### Sub-Task 7 — Match Endpoint
-**Status:** `[ ] pending`
+**Status:** `[x] done`
+
+> **Architecture note (November 2026):** Implemented during scaffolding. `routers/match.py`
+> handles `POST /api/match` with full validation, deterministic scoring via `services/scoring.py`,
+> concurrent `asyncio.gather()` calls for optional watsonx.ai explanations, and sorted
+> `MatchResult` output. `MatchRequest` and `MatchResult` Pydantic models are in `models/quiz.py`.
+> The router is registered in `main.py`. All behaviour is covered by the existing test suite.
 
 **Intent:**
 Implement `POST /api/match` in `routers/match.py`. Receives the user's quiz answers and a
 list of candidate IDs, and returns a match percentage and AI-written explanation for each.
 
-**Expected Outcomes:**
-- `POST /api/match` with body `{ answers: { topic: value }, candidate_ids: [str] }` returns:
-  `[{ candidate_id, match_pct, explanation }]`
-- `match_pct` is calculated server-side: `(matching topics / total topics) * 100`, rounded
-  to the nearest integer
-- `explanation` is a 2–3 sentence plain-English string from `watsonx.explain_match()`
-- Explanation calls run concurrently per candidate using `asyncio.gather()`
-- If watsonx fails for a candidate, `explanation` defaults to an empty string (no crash)
-
-**Todo List:**
-1. Add Pydantic models `MatchRequest` and `MatchResult` in `models/quiz.py`
-2. Write the route in `routers/match.py`:
-   - Validate that `answers` is a non-empty dict and `candidate_ids` is a non-empty list
-   - For each candidate ID, load their stance doc from Cloudant
-   - Compute `match_pct` by comparing `answers[topic]` to `stance[topic]` for each shared topic
-   - Call `watsonx.explain_match(answers, candidate_stances)` for each candidate concurrently
-   - Return list of `MatchResult` objects
-3. Register the router in `main.py`
+**Implemented:**
+- `POST /api/match` with body `{ answers: { topic: value }, candidate_ids: [str], zip: str|null }` returns `[{ candidate_id, match_pct, value_match_pct, location_boost, shared_topics, explanation, explanation_source }]` sorted by `match_pct` descending
+- `match_pct` is calculated server-side by `score_candidate()` in `services/scoring.py` using mean absolute deviation across shared policy topics; location boost of +4 points for ZIP matches
+- `explanation` is derived from `watsonx.explain_match()` when `ENABLE_WATSONX=true`, otherwise a plain-English rules-based string; `explanation_source` indicates `"watsonx"` or `"rules"`
+- Explanation calls run concurrently via `asyncio.gather()`; watsonx failure falls back to rules-based explanation without crashing
+- `MatchRequest` and `MatchResult` Pydantic models in `models/quiz.py`; router registered in `main.py`
 
 **Relevant Context:**
-- Stance values from watsonx use terms like `"support"`, `"oppose"`, `"neutral"` — quiz
-  answer options must use the same values (defined in Sub-Task 6)
-- If a candidate has no stance data in Cloudant, return `match_pct: null` and
-  `explanation: "Stance data unavailable"`
+- Scoring is deterministic — watsonx only affects `explanation`, never `match_pct`
+- ZIP validation: must be a 5-digit NY ZIP; non-NY ZIPs return 422
+- Unknown `candidate_ids` return 404
 
 ---
 
 ### Sub-Task 8 — Frontend api.js Update
-**Status:** `[ ] pending`
+**Status:** `[x] done`
+
+> **Architecture note (November 2026):** Fully implemented. `frontend/JS/api.js` exports
+> `getCandidates()`, `getCandidatesByZip()`, `getCandidatesByName()`, `getQuizQuestions()`,
+> `submitQuizAnswers()`, `getCandidateProfile()`, `getBackendStatus()`, and `isNewYorkZip()`.
+> `frontend/JS/quiz.js` is a full 606-line implementation handling the quiz state machine,
+> Likert scoring, localStorage persistence, and optional watsonx match explanations.
+> `API_BASE = ""` is set at the top of `api.js`. All files now live under `frontend/`
+> following the directory restructure on November 22, 2026.
 
 **Intent:**
 Update `JS/api.js` to call the backend REST API as the primary data source, with the existing
 `data/candidates.json` as a fallback. Update `JS/quiz.js` to fetch questions from the backend
-and POST answers for scoring. This is the only frontend file that changes structurally.
+and POST answers for scoring.
 
-**Expected Outcomes:**
-- `getCandidatesByZip(zip)` calls `GET /api/candidates?zip={zip}` and falls back to
-  `data/candidates.json` (filtered to preview records) if the fetch fails or returns non-200
-- `getQuizQuestions(zip)` calls `GET /api/quiz?zip={zip}` and falls back to a small static
-  default question set embedded in the JS if the backend is unreachable
-- `submitQuizAnswers(answers, candidateIds)` POSTs to `/api/match` and returns the results
-  array; on failure returns an empty array so the UI degrades gracefully
-- The backend base URL is read from a single constant `const API_BASE` at the top of
-  `api.js` — empty string `""` means same-origin (dev), set to the Code Engine URL in prod
-- Existing `getCandidatesByName()` function is preserved unchanged
-
-**Todo List:**
-1. Add `const API_BASE = ""` at the top of `api.js` (single place to swap in the Code Engine URL)
-2. Rewrite `getCandidates()` to try `${API_BASE}/api/candidates?zip=${zip}` first; on any
-   error, `fetch("../data/candidates.json")` and return the full array as fallback
-3. Keep `getCandidatesByName()` as-is — it uses the already-cached candidates array
-4. Add `getQuizQuestions(zip)` — fetches `/api/quiz?zip=${zip}`, returns parsed JSON;
-   on error returns a 5-question static fallback array defined in the same file
-5. Add `submitQuizAnswers(answers, candidateIds)` — POSTs JSON to `/api/match`, returns
-   parsed result array; on error returns `[]`
-6. Update `JS/quiz.js` to call `getQuizQuestions(zip)` for question data and
-   `submitQuizAnswers(answers, candidateIds)` for scoring, then render the results
+**Implemented:**
+- `API_BASE = ""` at the top of `api.js` — set to the Code Engine URL for production
+- `getCandidates()` — fetches `/api/candidates`, falls back to `data/candidates.json`
+- `getCandidatesByZip(zip)` — validates 5-digit NY ZIP, calls `/api/candidates?zip=`, falls back to local data
+- `getCandidatesByName(query)` — name search over cached candidates, unchanged
+- `getQuizQuestions()` — fetches `/api/quiz`, falls back to `data/quiz.json`
+- `submitQuizAnswers(answers, candidateIds, zip)` — POSTs to `/api/match`, returns results array; on error returns `[]`
+- `quiz.js` — full implementation: quiz state machine, 5-point Likert scale, progress tracking, localStorage persistence, optional watsonx explanation rendering
+- All files relocated to `frontend/JS/` and `frontend/accessibility/` as of the directory restructure
 
 **Relevant Context:**
-- `JS/quiz.js` is currently empty — it needs to be written from scratch as part of this task
-- `JS/search.js` already extracts the ZIP value and passes it to the candidates flow —
-  it should also pass the ZIP to the quiz module when the quiz is started
+- `data/` remains at the repo root — shared by both frontend and backend
+- `api.js` local fallback path updated to `../../data/` after the `frontend/` move
 
 ---
 
