@@ -18,8 +18,7 @@ os.environ["ENABLE_WATSONX"] = "true"
 os.environ["ENABLE_WATSONX_BIOS"] = "true"
 
 from backend.config import watsonx_enabled, watsonx_bios_enabled  # noqa: E402
-from backend.services.civic import get_questions  # noqa: E402
-from backend.services.watsonx import explain_match, generate_quiz_questions, summarize_biography  # noqa: E402
+from backend.services.watsonx import explain_match, summarize_biography  # noqa: E402
 
 _SAMPLE_FACTS = [
     "Zohran Mamdani is a member of the New York State Assembly.",
@@ -82,39 +81,6 @@ async def run() -> None:
         print("        the model supports /ml/v1/text/generation.")
 
     print()
-
-    # --- generate_quiz_questions ---
-    print("--- generate_quiz_questions() ---")
-    static_questions = get_questions()
-    static_dicts = [q.model_dump() for q in static_questions]
-    likert_count = sum(1 for q in static_dicts if q.get("type") == "likert" and q.get("topic"))
-    print(f"  Input: {len(static_dicts)} questions ({likert_count} likert/scorable)")
-    rephrased = await generate_quiz_questions(static_dicts)
-    if rephrased:
-        changed = [
-            (o["id"], o["prompt"], r["prompt"])
-            for o, r in zip(static_dicts, rephrased)
-            if o["prompt"] != r["prompt"]
-        ]
-        print(f"  Result: {len(rephrased)} questions returned, {len(changed)} prompts rephrased")
-        for qid, original, new in changed[:3]:
-            print(f"    [{qid}]")
-            print(f"      original:  {original}")
-            print(f"      rephrased: {new}")
-        # Verify scoring fields are untouched.
-        mismatches = [
-            o["id"]
-            for o, r in zip(static_dicts, rephrased)
-            if o.get("score") != r.get("score") or o.get("topic") != r.get("topic")
-        ]
-        if mismatches:
-            print(f"  ERROR: score/topic changed for: {mismatches}")
-        else:
-            print("  OK: score and topic fields are unchanged for all questions")
-    else:
-        print("  WARN: returned [] — check credentials, model ID, WATSONX_SPACE_ID,")
-        print("        and run with logging enabled to see the raw API error:")
-        print("        python -c \"import logging; logging.basicConfig(level=logging.DEBUG)\" -m backend.scripts.smoke_watsonx")
 
     print("\n=== done ===")
 
