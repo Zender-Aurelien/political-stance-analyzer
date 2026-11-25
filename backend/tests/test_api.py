@@ -159,3 +159,78 @@ def test_cors_and_status(client):
     assert status["live_representatives"] is False
 
 
+
+# ---------------------------------------------------------------------------
+# Rate limiting tests
+# ---------------------------------------------------------------------------
+
+def test_match_rate_limit(tmp_path, monkeypatch):
+    """POST /api/match is blocked after 10 requests in 60 s from the same IP."""
+    monkeypatch.setenv("CACHE_PATH", str(tmp_path / "cache.sqlite3"))
+    monkeypatch.setenv("ENABLE_WATSONX", "false")
+    monkeypatch.delenv("CLOUDANT_URL", raising=False)
+    monkeypatch.delenv("OPEN_STATES_API_KEY", raising=False)
+    # Freeze monotonic clock so all requests fall within the same window.
+    monkeypatch.setattr("backend.middleware.rate_limit.time.monotonic", lambda: 0.0)
+
+    with TestClient(app) as client:
+        body = {"answers": {"housing": 1}, "candidate_ids": ["zohran-mamdani"]}
+        for _ in range(10):
+            assert client.post("/api/match", json=body).status_code == 200
+        response = client.post("/api/match", json=body)
+        assert response.status_code == 429
+        assert "detail" in response.json()
+        assert "Retry-After" in response.headers
+
+
+def test_candidates_rate_limit(tmp_path, monkeypatch):
+    """GET /api/candidates is blocked after 30 requests in 60 s from the same IP."""
+    monkeypatch.setenv("CACHE_PATH", str(tmp_path / "cache.sqlite3"))
+    monkeypatch.setenv("ENABLE_WATSONX", "false")
+    monkeypatch.delenv("CLOUDANT_URL", raising=False)
+    monkeypatch.delenv("OPEN_STATES_API_KEY", raising=False)
+    monkeypatch.setattr("backend.middleware.rate_limit.time.monotonic", lambda: 0.0)
+
+    with TestClient(app) as client:
+        for _ in range(30):
+            assert client.get("/api/candidates").status_code == 200
+        assert client.get("/api/candidates").status_code == 429
+
+
+def test_rate_limit_resets_after_window(tmp_path, monkeypatch):
+    """Requests succeed again once the window has elapsed."""
+    monkeypatch.setenv("CACHE_PATH", str(tmp_path / "cache.sqlite3"))
+    monkeypatch.setenv("ENABLE_WATSONX", "false")
+    monkeypatch.delenv("CLOUDANT_URL", raising=False)
+    monkeypatch.delenv("OPEN_STATES_API_KEY", raising=False)
+
+    clock = [0.0]
+    monkeypatch.setattr("backend.middleware.rate_limit.time.monotonic", lambda: clock[0])
+
+    with TestClient(app) as client:
+        body = {"answers": {"housing": 1}, "candidate_ids": ["zohran-mamdani"]}
+        for _ in range(10):
+            client.post("/api/match", json=body)
+        assert client.post("/api/match", json=body).status_code == 429
+
+        # Advance clock past the 60-second window.
+        clock[0] = 61.0
+        assert client.post("/api/match", json=body).status_code == 200
+
+
+def test_rate_limit_retry_after_header(tmp_path, monkeypatch):
+    """429 response includes a Retry-After header with a positive integer."""
+    monkeypatch.setenv("CACHE_PATH", str(tmp_path / "cache.sqlite3"))
+    monkeypatch.setenv("ENABLE_WATSONX", "false")
+    monkeypatch.delenv("CLOUDANT_URL", raising=False)
+    monkeypatch.delenv("OPEN_STATES_API_KEY", raising=False)
+    monkeypatch.setattr("backend.middleware.rate_limit.time.monotonic", lambda: 0.0)
+
+    with TestClient(app) as client:
+        body = {"answers": {"housing": 1}, "candidate_ids": ["zohran-mamdani"]}
+        for _ in range(10):
+            client.post("/api/match", json=body)
+        response = client.post("/api/match", json=body)
+        assert response.status_code == 429
+        retry_after = int(response.headers["Retry-After"])
+        assert retry_after > 0

@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import Response
 
 from backend.config import ROOT, cloudant_configured, openstates_configured, watsonx_enabled, watsonx_bios_enabled
+from backend.middleware.rate_limit import RateLimitMiddleware, Rule
 from backend.routers import candidates, match, quiz
 from backend.services.civic import get_candidates, get_questions
 
@@ -46,6 +47,20 @@ app = FastAPI(
 origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGIN", "http://localhost:5500,http://127.0.0.1:5500").split(",") if origin.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False,
                    allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+# Rate limiting — middleware is applied in reverse registration order (last added = outermost).
+# Rules are matched by path prefix; the first match wins.
+# Limits are per IP per rolling window (seconds).
+app.add_middleware(RateLimitMiddleware, rules=[
+    # POST /api/match: up to 24 watsonx calls per request — keep tight.
+    Rule("/api/match",                          limit=10,  window=60),
+    # Profile refresh: external HTTP fetches + optional watsonx bio call.
+    Rule("/api/candidates",                     limit=30,  window=60),
+    # Quiz endpoint writes to Cloudant on cache miss.
+    Rule("/api/quiz",                           limit=60,  window=60),
+    # Status / health are cheap but still worth capping.
+    Rule("/api/status",                         limit=120, window=60),
+    Rule("/health",                             limit=120, window=60),
+])
 app.include_router(candidates.router, prefix="/api")
 app.include_router(quiz.router, prefix="/api")
 app.include_router(match.router, prefix="/api")
